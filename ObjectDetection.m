@@ -1,0 +1,183 @@
+classdef ObjectDetection < handle
+    properties
+        cam
+        cam2
+        frame
+        roi
+        roiMask
+        imgSize
+    end
+    
+    methods
+        % Konstruktor
+        function this = ObjectDetection()
+            this.cam = webcam('C922 Pro Stream Webcam');
+            this.cam.FocusMode = 'manual';
+            this.cam.Focus = 0;
+            this.cam.ExposureMode = 'manual';
+            preview(this.cam);
+%             this.cam2 = webcam('Logitech HD Webcam C270');
+%             preview(this.cam2);
+
+            this.roi = [58 429 307 194];
+            this.imgSize = [480 640];
+            this.roiMask = createRoiMask(this);
+            this.autoExposure();
+        end
+        
+        function autoExposure(this)
+            for i=-9:-2
+                this.cam.Exposure = i;
+                pause(0.5)
+                if this.objectOnTable == true
+                    this.cam.Exposure = i-2;
+                    break;
+                end
+                
+            end
+                
+        end
+        
+        % Foto mit Webcam aufnehmen und bearbeiten
+        function pic = takePicture(this)
+            frame1 = snapshot(this.cam);
+            
+            % Weichzeichner anwenden
+            frame2 = imgaussfilt(frame1,5);
+            
+            % Umwandlung in Biärbild
+            frame3 = im2bw(frame2,0.27);
+            
+            % Binärbild maskieren, sodass nur der ROI betrachtet wird
+            frame4 = frame3 .* this.roiMask;
+
+            % schwarze Löcher in Binärbild entfernen
+            frame5 = logical(imfill(frame4,'holes'));
+            
+            pic = frame5;
+            
+%             figure(2)
+%             imshow(frame1)
+%             figure(3)
+%             imshow(frame2)
+%             figure(4)
+%             imshow(frame3)
+%             figure(5)
+%             imshow(frame4)
+%             figure(6)
+%             imshow(frame5)
+        end
+        
+        % Maske für Region of Interest erstellen
+        function mask = createRoiMask(this)
+            mask = zeros(this.imgSize(1),this.imgSize(2));
+            mask(this.roi(1):(this.roi(1)+this.roi(3)),this.roi(2):(this.roi(2)+this.roi(4))) = 1;
+
+        end
+        
+        % Schauen, ob Objekt auf Objekttisch liegt
+        function status = objectOnTable(this)
+            status = 0;
+            
+            % Foto aufnehmen
+            img = this.takePicture();
+            
+            % Schwerpunkte aller Objekte auf Binärbild finden
+            s = regionprops(img, 'Centroid','Area', 'BoundingBox');
+            
+            % Kleine Objekte aussortieren
+            smallObjectIds = find([s.Area] < 5000);
+            s(smallObjectIds) = []; 
+            
+            if (length(s) > 0)
+                status = 1;
+            end
+        end
+        
+        % Objekt lokalisieren
+        function [x,y, success] = locateObject(this)
+            % Foto aufnehmen
+            img = this.takePicture();
+%             
+%             % Weichzeichner anwenden
+%             frame2 = imgaussfilt(frame1,7);
+%             
+%             % Umwandlung in Biärbild
+%             frame3 = im2bw(frame2,0.5);
+%             
+%             % Binärbild maskieren, sodass nur der ROI betrachtet wird
+%             frame4 = frame3 .* this.roiMask;
+% 
+%             
+%             % schwarze Löcher in Binärbild entfernen
+%             frame5 = logical(imfill(frame4,'holes'));
+            
+
+            % Schwerpunkte aller Objekte auf Binärbild finden
+            s = regionprops(img, 'Centroid','Area', 'BoundingBox');
+            figure(2)
+            imshow(img)
+            hold on
+            % Kleine Objekte aussortieren
+            smallObjectIds = find([s.Area] < 5000);
+            s(smallObjectIds) = [];
+            centroids = cat(1, s.Centroid);
+            bBoxes = cat(1, s.BoundingBox);
+            
+            % Falls mindestens ein Objekt gefunden wurde
+            if length(s) > 0
+                % Kontrollfoto für Schwerpunkte anzeigen
+                
+                plot(centroids(:,1),centroids(:,2), 'r*')
+                hold on 
+
+                % Pixel-Koordinaten des größten Objekts für Rückgabe
+                % bestimmen
+
+                [maxVal, maxIdx] = max([s.Area]);
+                
+                rectangle('Position', bBoxes(maxIdx,1:4),'EdgeColor','r', 'LineWidth', 1)
+                hold off
+                
+                px = centroids(maxIdx,2);
+                py = centroids(maxIdx,1);
+
+                [x,y] = this.pixelToCoords(px,py);
+                
+                success = 1;
+            % Falls kein Objekt gefunden wurde
+            else
+                x = 0;
+                y = 0;
+                success = 0;
+            end
+        end
+        
+        % Umrechnung von Pixel-Koordinaten in Roboterkoordinaten
+        function [x,y] = pixelToCoords(~, px, py)
+
+
+            %
+            % x-Richtung --> x(px) = m*px+t
+            % f(173px) = -440 mm
+            % f(354px) = -728 mm
+            % Berechnung: [m,t] = [173 1; 354 1] \ [-440; -728]
+            % m = -1.591    t = -164.7
+
+            x = -1.591*px -164.7;
+
+            %
+            % y-Richtung --> y(py) = m*py+t
+            % f(591px) = 86 mm
+            % f(468px) = -107 mm
+            % Berechnung: [m,t] = [591 1; 468 1] \ [86; -107]
+            % m = 1.569   t = -841.3
+
+            y = 1.569*py -841.3;
+
+        end
+    end
+    
+    events
+    end
+end
