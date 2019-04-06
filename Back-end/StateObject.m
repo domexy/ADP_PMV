@@ -17,8 +17,7 @@ classdef StateObject < handle
     
     methods
         function this = StateObject()
-            this.state = 0;
-            this.state_description = 'Offline';
+            this.setStateOffline()
         end
         
         function state = getState(this)
@@ -68,7 +67,7 @@ classdef StateObject < handle
     methods (Access = private)
         function setState(this,state, state_description)
             this.state = state;
-            this.state = state_description;
+            this.state_description = state_description;
         end
     end
 end
