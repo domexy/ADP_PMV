@@ -1,5 +1,7 @@
-classdef Scale < handle
+classdef Scale < StateObject
     properties
+        logger;
+        
         serialPort;
         portID = '';    % z.B. COM7
         mass;
@@ -9,10 +11,25 @@ classdef Scale < handle
     
     methods
         % Konstruktor
-        function this = Scale(portID, cANbus)
+        function this = Scale(logger)
+            this = this@StateObject();
+            
+            if nargin < 1
+                this.logger.debug = @disp;
+                this.logger.info = @disp;
+                this.logger.warning = @disp;
+                this.logger.error = @disp;
+            else
+                this.logger = logger;
+            end
+        end
+        
+        function init(this,portID, cANbus)
             this.portID = portID;
             this.cANbus = cANbus;
             this.connect();
+            
+            this.setStateOnline('Initialisiert');
         end
         % Verbindung zur Waage herstellen
         function connect(this)

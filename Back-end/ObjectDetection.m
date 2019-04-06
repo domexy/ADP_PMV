@@ -1,5 +1,7 @@
-classdef ObjectDetection < handle
+classdef ObjectDetection < StateObject
     properties
+        logger;
+        
         cam
         cam2
         frame
@@ -11,6 +13,19 @@ classdef ObjectDetection < handle
     methods
         % Konstruktor
         function this = ObjectDetection()
+            this = this@StateObject();
+            
+            if nargin < 1
+                this.logger.debug = @disp;
+                this.logger.info = @disp;
+                this.logger.warning = @disp;
+                this.logger.error = @disp;
+            else
+                this.logger = logger;
+            end
+        end
+        
+        function init(this)
             this.cam = webcam('C922 Pro Stream Webcam');
             this.cam.FocusMode = 'manual';
             this.cam.Focus = 0;
@@ -23,6 +38,8 @@ classdef ObjectDetection < handle
             this.imgSize = [480 640];
             this.roiMask = createRoiMask(this);
             this.autoExposure();
+            
+            this.setStateOnline('Initialisiert');
         end
         
         function autoExposure(this)

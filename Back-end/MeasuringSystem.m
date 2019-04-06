@@ -1,5 +1,7 @@
-classdef MeasuringSystem < handle
+classdef MeasuringSystem < StateObject
     properties
+        logger;
+        
         cANbus;
         status;
         cam;
@@ -17,14 +19,34 @@ classdef MeasuringSystem < handle
     
      methods
         % Konstruktor
-        function this = MeasuringSystem(cANbus)
+        function this = MeasuringSystem(logger)
+            this = this@StateObject();
+            
+            if nargin < 1
+                this.logger.debug = @disp;
+                this.logger.info = @disp;
+                this.logger.warning = @disp;
+                this.logger.error = @disp;
+            else
+                this.logger = logger;
+            end
+        end
+        
+        function init(this,cANbus)
             this.cANbus = cANbus;
-            this.scale = Scale('COM1', cANbus);
-            this.weighingBelt = WeighingBelt(cANbus);
-            this.light = Lighting('LPT1');
+            this.scale = Scale();
+            this.weighingBelt = WeighingBelt();
+            this.light = Lighting();
             this.cam = Camera();
             
+            this.scale.init('COM1', cANbus);
+            this.weighingBelt.init(cANbus);
+            this.light.init('LPT1');
+            this.cam.init();
+            
             this.listenerStart = addlistener(this.cANbus,'StartMeasurement',@this.startConvBelt);
+            
+            this.setStateOnline('Initialisiert');
         end
         
         function [success, error] = measure(this)

@@ -1,5 +1,7 @@
-classdef IsolationDevice < handle
+classdef IsolationDevice < StateObject
     properties
+        logger;
+        
         robot;
         convBelt;
         cANbus;
@@ -9,13 +11,31 @@ classdef IsolationDevice < handle
     end
     
     methods
-        function this = IsolationDevice(cANbus)
-            this.cANbus = cANbus;
-            this.mega = arduino('COM7', 'Mega2560', 'Libraries', 'Servo');
-            this.convBelt = ConveyorBelt(cANbus);
-            this.robot = Robot(cANbus, this.mega);
-            this.drumFeeder = DrumFeeder(cANbus, this.mega);
+        function this = IsolationDevice(logger)
+            this = this@StateObject();
             
+            if nargin < 1
+                this.logger.debug = @disp;
+                this.logger.info = @disp;
+                this.logger.warning = @disp;
+                this.logger.error = @disp;
+            else
+                this.logger = logger;
+            end
+        end
+        
+        function init(this,cANbus)
+            this.cANbus = cANbus;
+            this.convBelt = ConveyorBelt();
+            this.robot = Robot();
+            this.drumFeeder = DrumFeeder();
+            this.mega = arduino('COM7', 'Mega2560', 'Libraries', 'Servo');
+            
+            this.convBelt.init(cANbus);
+            this.robot.init(cANbus, this.mega);
+            this.drumFeeder.init(cANbus, this.mega);
+            
+            this.setStateOnline('Initialisiert');
         end
         
         

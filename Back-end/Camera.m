@@ -1,5 +1,7 @@
-classdef Camera < handle
+classdef Camera < StateObject
     properties
+        logger;
+        
         tcpip
         debug = 0;
         light;
@@ -7,11 +9,25 @@ classdef Camera < handle
         img
         imgRGB
         imgUV
+        
     end
     
     methods
-        function this = Camera()
-            % Matlab R2014b starten und einen Instant der
+        function this = Camera(logger)
+            this = this@StateObject();
+            
+            if nargin < 1
+                this.logger.debug = @disp;
+                this.logger.info = @disp;
+                this.logger.warning = @disp;
+                this.logger.error = @disp;
+            else
+                this.logger = logger;
+            end
+        end
+        
+        function init(this)
+             % Matlab R2014b starten und einen Instant der
             % Kamera-Server-Klasse in der Variablen s speichern
             !"C:\Program Files\MATLAB\R2014b\bin\matlab.exe" -r "s = CameraServer()"
 
@@ -43,6 +59,8 @@ classdef Camera < handle
             % Verbindung zur Beleuchtung herstellen
             this.light = Lighting('LPT1');
             this.light.changeLighting(0);
+            
+            this.setStateOnline('Initialisiert');
         end
         
         % Verbindung über TCPIP aufbauen

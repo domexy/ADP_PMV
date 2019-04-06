@@ -1,5 +1,7 @@
-classdef ConveyorBelt < handle
+classdef ConveyorBelt < StateObject
     properties
+        logger;
+        
         cANbus;
 %         listenerStart;
 %         listenerStop;
@@ -8,10 +10,24 @@ classdef ConveyorBelt < handle
     
     methods
         % Konstruktor
-        function this = ConveyorBelt(cANbus)
+        function this = ConveyorBelt(logger)
+            this = this@StateObject();
+            
+            if nargin < 1
+                this.logger.debug = @disp;
+                this.logger.info = @disp;
+                this.logger.warning = @disp;
+                this.logger.error = @disp;
+            else
+                this.logger = logger;
+            end
+        end
+        
+        function init(this, cANbus)
             this.cANbus = cANbus;
 %             this.listenerStart = addlistener(this.cANbus,'StartConveyorBelt',@this.startInterruption);
 %             this.listenerStop = addlistener(this.cANbus,'LightBarrierInterruption',@this.stopInterruption);
+            this.setStateOnline('Initialisiert');
         end
         % Destruktor
         function delete(this)

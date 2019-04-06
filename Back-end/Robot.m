@@ -1,5 +1,7 @@
-classdef Robot < handle
+classdef Robot < StateObject
     properties
+        logger;
+        
         ur5
         objDetection
         homePose = [26 -290 447 180 0 0];
@@ -11,7 +13,20 @@ classdef Robot < handle
     
     methods
         % Konstruktor für UR5-Roboter
-        function this = Robot(cANbus, mega)
+        function this = Robot(logger)
+            this = this@StateObject();
+            
+            if nargin < 1
+                this.logger.debug = @disp;
+                this.logger.info = @disp;
+                this.logger.warning = @disp;
+                this.logger.error = @disp;
+            else
+                this.logger = logger;
+            end
+        end
+        
+        function init(this,cANbus, mega)
             Robot_IP = '192.168.42.5';
             this.ur5 = tcpip(Robot_IP,30000,'NetworkRole','server');
             fclose(this.ur5);
@@ -22,9 +37,14 @@ classdef Robot < handle
             this.objDetection = ObjectDetection();
             this.cANbus = cANbus;
             
-            this.gripper = Gripper(mega);
+            this.gripper = Gripper();
+            
+            this.gripper.init(mega);
+            this.objDetection.init();
+            
             this.home();
-                        
+            
+            this.setStateOnline('Initialisiert');
         end
         
         % Funktion zum Auslesen der aktuellen Roboter-Pose

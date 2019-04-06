@@ -1,12 +1,27 @@
-classdef CameraServer < handle
+classdef CameraServer < StateObject
     properties
+        logger;
+        
         tcpip
         cam
         src
     end
     
     methods
-        function this = CameraServer()
+        function this = CameraServer(logger)
+            this = this@StateObject();
+            
+            if nargin < 1
+                this.logger.debug = @disp;
+                this.logger.info = @disp;
+                this.logger.warning = @disp;
+                this.logger.error = @disp;
+            else
+                this.logger = logger;
+            end
+        end
+        
+        function init(this)
             % Kamera initalisieren
             imaqreset;
             this.cam = videoinput('gige', 1,'RGB8Packed');
@@ -30,13 +45,15 @@ classdef CameraServer < handle
             % Verbindung aufbauen
             fopen(this.tcpip);
             disp('server.m --> Verbindung aufgebaut');
+            
+            this.setStateOnline('Initialisiert');
         end
         
         % Foto aufnehmen und in .mat-Datei speichern
         function takePicture(this)
             dummy = fread(this.tcpip);          % gesendetes Byte auslesen
             image = getsnapshot(this.cam);  % Foto aufnehmen
-            save('image.mat','image')       % Foto speichern
+            save('image.mat','image');       % Foto speichern
             disp('server.m --> Foto aufgenommen');
         end
         

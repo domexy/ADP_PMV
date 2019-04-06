@@ -1,13 +1,30 @@
-classdef WeighingBelt < handle
+classdef WeighingBelt < StateObject
     properties
+        logger;
+        
         cANbus;
         status;
     end
     
     methods
         % Konstruktor
-        function this = WeighingBelt(cANbus)
+        function this = WeighingBelt(logger)
+            this = this@StateObject();
+            
+            if nargin < 1
+                this.logger.debug = @disp;
+                this.logger.info = @disp;
+                this.logger.warning = @disp;
+                this.logger.error = @disp;
+            else
+                this.logger = logger;
+            end
+        end
+        
+        function init(this,cANbus)
             this.cANbus = cANbus;
+            
+            this.setStateOnline('Initialisiert');
         end
         % Destruktor
         function delete(this)

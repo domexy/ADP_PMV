@@ -5,24 +5,18 @@ classdef LogEntry
     properties
         time
         level
-        source
+        stack
         message
     end
     
     methods
-        function obj = LogEntry(level, source, message)
+        function obj = LogEntry(level, stack, message)
             %LOGENTRY Construct an instance of this class
             %   Detailed explanation goes here
             obj.time = now();
             obj.level = level;
-            obj.source = source;
+            obj.stack = stack;
             obj.message = message;
-        end
-        
-        function outputStr = format(obj,formatStr)
-            %METHOD1 Summary of this method goes here
-            %   Detailed explanation goes here
-            outputStr = sprintf(formatStr, 2);
         end
     end
 end

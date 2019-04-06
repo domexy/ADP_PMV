@@ -1,6 +1,8 @@
 
-classdef CANbus < handle
+classdef CANbus < StateObject
     properties
+        logger;
+        
         channel = canChannel('PEAK-System','PCAN_USBBUS1');
         msg_robot = 0;
         msg_meas = 0;
@@ -9,7 +11,20 @@ classdef CANbus < handle
     
     methods
         % Konstruktor
-        function this = CANbus()
+        function this = CANbus(logger)
+            this = this@StateObject();
+            
+            if nargin < 1
+                this.logger.debug = @disp;
+                this.logger.info = @disp;
+                this.logger.warning = @disp;
+                this.logger.error = @disp;
+            else
+                this.logger = logger;
+            end
+        end
+        
+        function init(this)
             % Versuche Channel zu starten 
             try
                 this.startChannel();
@@ -18,6 +33,8 @@ classdef CANbus < handle
                 this.stopChannel();
                 this.startChannel();
             end
+            
+            this.setStateOnline('Initialisiert');
         end
         % Destruktor
         function delete(this)

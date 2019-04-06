@@ -1,5 +1,7 @@
-classdef Gripper < handle
+classdef Gripper < StateObject
     properties
+        logger;
+        
         mega;   % Arduino Mega 2560
         servo1;
         servo2;
@@ -7,11 +9,26 @@ classdef Gripper < handle
     end
     
     methods
-        function this = Gripper(mega)
+        function this = Gripper(logger)
+            this = this@StateObject();
+            
+            if nargin < 1
+                this.logger.debug = @disp;
+                this.logger.info = @disp;
+                this.logger.warning = @disp;
+                this.logger.error = @disp;
+            else
+                this.logger = logger;
+            end
+        end
+        
+        function init(this, mega)
             this.mega = mega;
             this.servo1 = servo(this.mega, 'D11');
             this.servo2 = servo(this.mega, 'D12');
             this.offset = 0.065;
+            
+            this.setStateOnline('Initialisiert');
         end
         
         function open(this)
