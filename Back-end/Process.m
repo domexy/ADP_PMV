@@ -44,8 +44,10 @@ classdef Process < StateObject
         function run(this, num_iterations)
             this.logger.info(['Prozess gestartet für ', num2str(num_iterations) ,' Iterationen']);
             for i=1:num_iterations
+                this.setStateActive('Objekt Isolieren');
                 [success, error] = this.isoDevice.isolateObject();      % Versuche ein Objekt dem Messsystem zuzuführen
                 if (success)                                            % Falls das geklappt hat   
+                    this.setStateActive('Objekt Messen');
                     [success, error] = this.measSystem.measure();       % Versuche die Messung durchzuführen    
                     if (~success)                                       % Falls das nicht geklappt hat
                         this.logger.warning('Fehler bei der Messung');   % gibt eine Fehlermeldung aus
@@ -55,6 +57,7 @@ classdef Process < StateObject
                 end
             end
             this.logger.info(['Iteration ', num2str(i) ,' abgeschlossen']);
+            this.setStateOnline('Objekt Isolieren');
         end
     end
     
