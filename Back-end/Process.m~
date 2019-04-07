@@ -11,12 +11,22 @@ classdef Process < StateObject
     end
     
     methods
-        function this = Process(logger)   
+        function this = Process(varargin)   
             % Erzeugt eine Instanz der Klasse Process
+            this = this@StateObject();
+            
             if nargin < 1
-                logger = [];
+                try
+                    this.logger = Logger.Logger();
+                catch % Falls Logger nicht vorhanden ist, wird jeder Aufruf zu disp() umgelenkt
+                    this.logger.debug = @disp;
+                    this.logger.info = @disp;
+                    this.logger.warning = @disp;
+                    this.logger.error = @disp;
+                end
+            else
+                this.logger = logger;
             end
-            this = this@StateObject(logger);
         end
         
         function init(this)
@@ -47,7 +57,7 @@ classdef Process < StateObject
                 end
             end
             this.logger.info(['Iteration ', num2str(i) ,' abgeschlossen']);
-            this.setStateOnline('Betriebsbereit');
+            this.logger.debug(this.setStateOnline('Betriebsbereit'));
         end
     end
 end

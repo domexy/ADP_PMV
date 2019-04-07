@@ -14,16 +14,10 @@ classdef Camera < StateObject
     
     methods
         function this = Camera(logger)
-            this = this@StateObject();
-            
             if nargin < 1
-                this.logger.debug = @disp;
-                this.logger.info = @disp;
-                this.logger.warning = @disp;
-                this.logger.error = @disp;
-            else
-                this.logger = logger;
+                logger = [];
             end
+            this = this@StateObject(logger);
         end
         
         function init(this)
@@ -35,7 +29,7 @@ classdef Camera < StateObject
             this.tcpip = tcpip('127.0.0.1', 55000, 'NetworkRole', 'client');
             
             % Input-Buffer-Size auf 1 setzen --> es wird nur ein Zeichen
-            % übertragen
+            % ï¿½bertragen
             set(this.tcpip, 'InputBufferSize', 1);
             
             % Versuche 20x die Verbindung zu Matlab R2014b aufzubauen
@@ -46,29 +40,30 @@ classdef Camera < StateObject
                     disp('Camera.m --> Verbindung zur Kamera hergestellt');
                     break;
                 catch
-                    if (mod(i,5) == 1)      % Rückmeldung, dass weiter versucht wird, Verbindung aufzubauen
+                    if (mod(i,5) == 1)      % Rï¿½ckmeldung, dass weiter versucht wird, Verbindung aufzubauen
                         disp('Camera.m --> Verbindung zur Kamera wird aufgebaut ...');
                     end
                     
-                    if i == 20              % Rückmeldung, dass Verbindung fehlgeschlagen ist.
+                    if i == 20              % Rï¿½ckmeldung, dass Verbindung fehlgeschlagen ist.
                         disp('Camera.m --> Verbindung zur Kamera fehlgeschlagen!');
                     end
                 end
             end
             
             % Verbindung zur Beleuchtung herstellen
-            this.light = Lighting('LPT1');
+            this.light = Lighting(this.logger);
+            this.light.init('LPT1');
             this.light.changeLighting(0);
             
             this.setStateOnline('Initialisiert');
         end
         
-        % Verbindung über TCPIP aufbauen
+        % Verbindung ï¿½ber TCPIP aufbauen
         function openClient(this)
             fopen(this.tcpip);
         end
         
-        % Verbindung über TCPIP schließen
+        % Verbindung ï¿½ber TCPIP schlieï¿½en
         function closeClient(this)
             fclose(this.tcpip);
         end
@@ -99,10 +94,10 @@ classdef Camera < StateObject
             end
             
 %             imshow(image);          % Foto anzeigen
-            delete('image.mat')     % Foto löschen
+            delete('image.mat')     % Foto lï¿½schen
         end
         
-        % Ein weißes und ein UV-Foto aufnehmen
+        % Ein weiï¿½es und ein UV-Foto aufnehmen
         function takePhotos(this)
             this.light.changeLighting(0);
             this.light.changeLighting(16);

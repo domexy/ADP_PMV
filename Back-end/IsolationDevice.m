@@ -12,23 +12,17 @@ classdef IsolationDevice < StateObject
     
     methods
         function this = IsolationDevice(logger)
-            this = this@StateObject();
-            
             if nargin < 1
-                this.logger.debug = @disp;
-                this.logger.info = @disp;
-                this.logger.warning = @disp;
-                this.logger.error = @disp;
-            else
-                this.logger = logger;
+                logger = [];
             end
+            this = this@StateObject(logger);
         end
         
         function init(this,cANbus)
             this.cANbus = cANbus;
-            this.convBelt = ConveyorBelt();
-            this.robot = Robot();
-            this.drumFeeder = DrumFeeder();
+            this.convBelt = ConveyorBelt(this.logger);
+            this.robot = Robot(this.logger);
+            this.drumFeeder = DrumFeeder(this.logger);
             this.mega = arduino('COM7', 'Mega2560', 'Libraries', 'Servo');
             
             this.convBelt.init(cANbus);
@@ -39,14 +33,14 @@ classdef IsolationDevice < StateObject
         end
         
         
-        % Kompletter Isolationsvorgang für ein Objekt
+        % Kompletter Isolationsvorgang fï¿½r ein Objekt
         function [success, error] = isolateObject(this)
             success = 1;
             error = 0;
             
             if(~this.robot.objDetection.objectOnTable())    % Falls kein Objekt auf dem Objekttisch liegt
-                this.convBelt.start();                      % Förderband einschalten
-                if(~this.drumFeeder.isolate())              % Falls der Nachschub über das Förderband nicht klappt
+                this.convBelt.start();                      % Fï¿½rderband einschalten
+                if(~this.drumFeeder.isolate())              % Falls der Nachschub ï¿½ber das Fï¿½rderband nicht klappt
                     success = 0;                            
                     error = 'Timeout: Lichtschranke1';
                 end

@@ -12,16 +12,10 @@ classdef Scale < StateObject
     methods
         % Konstruktor
         function this = Scale(logger)
-            this = this@StateObject();
-            
             if nargin < 1
-                this.logger.debug = @disp;
-                this.logger.info = @disp;
-                this.logger.warning = @disp;
-                this.logger.error = @disp;
-            else
-                this.logger = logger;
+                logger = [];
             end
+            this = this@StateObject(logger);
         end
         
         function init(this,portID, cANbus)
@@ -33,7 +27,7 @@ classdef Scale < StateObject
         end
         % Verbindung zur Waage herstellen
         function connect(this)
-            % alle bestehenden Verbindungen zu COM-Ports schließen
+            % alle bestehenden Verbindungen zu COM-Ports schlieï¿½en
             delete(instrfindall)
 
             % Verbindung zu COM-Port aufbauen
@@ -45,12 +39,12 @@ classdef Scale < StateObject
 %             this.serialPort.BytesAvailableFcnCount = 15;
 %             this.serialPort.BytesAvailableFcn = {@this.getMass};
 
-            % Verbindung zum COM-Port öffnen
+            % Verbindung zum COM-Port ï¿½ffnen
             fopen(this.serialPort);
         end
         % Verbindung zur Waage trennen
         function disconnect(this)
-            % Verbindung schließen 
+            % Verbindung schlieï¿½en 
             fclose(this.serialPort);
 
             % Verbindung trennen und Speicher wieder freigeben

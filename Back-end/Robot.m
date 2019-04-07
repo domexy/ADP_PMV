@@ -12,18 +12,12 @@ classdef Robot < StateObject
     end
     
     methods
-        % Konstruktor für UR5-Roboter
+        % Konstruktor fï¿½r UR5-Roboter
         function this = Robot(logger)
-            this = this@StateObject();
-            
             if nargin < 1
-                this.logger.debug = @disp;
-                this.logger.info = @disp;
-                this.logger.warning = @disp;
-                this.logger.error = @disp;
-            else
-                this.logger = logger;
+                logger = [];
             end
+            this = this@StateObject(logger);
         end
         
         function init(this,cANbus, mega)
@@ -34,10 +28,10 @@ classdef Robot < StateObject
             fopen(this.ur5);
             disp('Robot.m --> Connected!');
             
-            this.objDetection = ObjectDetection();
+            this.objDetection = ObjectDetection(this.logger);
             this.cANbus = cANbus;
             
-            this.gripper = Gripper();
+            this.gripper = Gripper(this.logger);
             
             this.gripper.init(mega);
             this.objDetection.init();
@@ -80,7 +74,7 @@ classdef Robot < StateObject
                 end
             end
             P(1:3) = P(1:3)*1000;           % converting to mm
-            P(4:6) = P(4:6)*360/2/3.1415;   % converting to °
+            P(4:6) = P(4:6)*360/2/3.1415;   % converting to ï¿½
         end
         
         % Roboter-Nachricht lesen
@@ -104,7 +98,7 @@ classdef Robot < StateObject
             
             % Informationen zur Roboter-Pose ins richtige Format bringen
             P(1:3) = P(1:3) * 0.001;            % von mm zu m
-            P(4:6) = P(4:6) * 2*3.1415/360;     % von ° zu rad
+            P(4:6) = P(4:6) * 2*3.1415/360;     % von ï¿½ zu rad
             P_char = ['(',num2str(P(1)),',',...
                 num2str(P(2)),',',...
                 num2str(P(3)),',',...
@@ -130,7 +124,7 @@ classdef Robot < StateObject
             end
             
             % Matlab dazu zwingen zu warten, bis Roboter in Endpose
-            % angekommen ist. Ansonsten werden evtl. Wegpunkte übersprungen
+            % angekommen ist. Ansonsten werden evtl. Wegpunkte ï¿½bersprungen
             while(true)
                 pose1 = this.readPose();    % Aktuelle Position auslesen
                 pause(0.1);                 % Kurz warten
@@ -166,7 +160,7 @@ classdef Robot < StateObject
                 this.move(curWP);
             end
             
-            % Fahre Roboter zurück in die Home-Position
+            % Fahre Roboter zurï¿½ck in die Home-Position
             this.home();
         end
         
@@ -176,7 +170,7 @@ classdef Robot < StateObject
             % Stelle sicher, das Roboter in Home-Position ist
             this.home();
             % Lokalisiere Objekte auf Objekttisch und finde Koordinaten vom
-            % größten Objekt
+            % grï¿½ï¿½ten Objekt
             [xObj, yObj, locSuccess] = this.objDetection.locateObject();
             
             if (locSuccess)                             % Falls ein Objekt lokalisiert wurde
@@ -194,7 +188,7 @@ classdef Robot < StateObject
                             this.sweep();               % kehre Objekttisch ab
                             success = 0;
                         else
-                            this.returnHome();          % Fahre Roboter zurück in die Home-Position
+                            this.returnHome();          % Fahre Roboter zurï¿½ck in die Home-Position
                         end                        
                     end
                     
@@ -204,7 +198,7 @@ classdef Robot < StateObject
                         this.sweep();               % kehre Objekttisch ab
                         success = 0;
                     else
-                        this.returnHome();          % Fahre Roboter zurück in die Home-Position
+                        this.returnHome();          % Fahre Roboter zurï¿½ck in die Home-Position
                     end
                 end
                 
@@ -217,19 +211,19 @@ classdef Robot < StateObject
             
         end
       
-        % Unterdrucksensor überprüfen, ob Objekt an Sauger hängt
+        % Unterdrucksensor ï¿½berprï¿½fen, ob Objekt an Sauger hï¿½ngt
         function status = checkPressureSensor(this)
             % Hier sollte der Drucksensor ausgelesen werden
-            % 1: Objekt hängt am Sauger    0: Objekt hängt nicht am Sauger
+            % 1: Objekt hï¿½ngt am Sauger    0: Objekt hï¿½ngt nicht am Sauger
             status = bitget(this.cANbus.msg_robot,4);
             
 %             status = input('Robot.m --> checkPressureSensor(): ');
         end
  
-         % Unterdrucksensor überprüfen, ob Objekt an Sauger hängt
+         % Unterdrucksensor ï¿½berprï¿½fen, ob Objekt an Sauger hï¿½ngt
         function status = checkLightBarrier1(this)
             % Hier sollte der Drucksensor ausgelesen werden
-            % 1: Objekt hängt am Sauger    0: Objekt hängt nicht am Sauger
+            % 1: Objekt hï¿½ngt am Sauger    0: Objekt hï¿½ngt nicht am Sauger
             status = bitget(this.cANbus.msg_robot,5);
             
 %             status = input('Robot.m --> checkPressureSensor(): ');
@@ -254,24 +248,24 @@ classdef Robot < StateObject
         
         % Versuche Objekt zu heben
         % Parameter:    x, y des Objekts in Roboter-Koordinaten
-        % Rückgabe:     status = 1, wenn Objekt gehoben werden konnte, 
+        % Rï¿½ckgabe:     status = 1, wenn Objekt gehoben werden konnte, 
         %               status = 0, wenn Objekt nicht gehoben werden konnte
         function status = liftObject(this, xObj, yObj)
             objPosition = [yObj xObj 57 180 0 0]; 
             liftPosition = [yObj xObj 107 180 0 0]; 
             
-            this.move(liftPosition);            % 5 cm über das Objekt fahren
+            this.move(liftPosition);            % 5 cm ï¿½ber das Objekt fahren
             
             % Versuche 3x das Objekt zu heben
             for i = 1:3      
                 this.move(objPosition);         % Fahre Sauger auf Objekt
                 this.switchVacuum(1);           % Schalte Vakuum ein
                 this.move(liftPosition);        % Hebe Objekt hoch
-                if this.checkPressureSensor()   % Falls Objekt noch am Sauger hängt
+                if this.checkPressureSensor()   % Falls Objekt noch am Sauger hï¿½ngt
                     status = 1;                 % Anheben hat funktioniert
                     disp('Robot.m --> Anheben hat funktioniert');
                     break;                      % Schleife abbrechen
-                else                            % falls Objekt nicht am Sauger hängt
+                else                            % falls Objekt nicht am Sauger hï¿½ngt
                     this.switchVacuum(0);       % Vakuum ausschalten
                     status = 0;                 % Anheben hat nicht funkioniert
                 end
@@ -281,7 +275,7 @@ classdef Robot < StateObject
         
         % Fahre Objekt in Anlage
         function success = moveObject(this)
-            % Wegpunkte für Verfahrweg definieren
+            % Wegpunkte fï¿½r Verfahrweg definieren
 %             wp{1} = [91 -332 500 180 0 0];          % Pose: Hochfahren
 %             wp{2} = [175 -425 500 -135 -120 0];     % Pose: Drehen zu Rampe 1
 %             wp{3} = [550 60 500 0 -180 0];          % Pose: Drehen zu Rampe 2
@@ -294,12 +288,12 @@ classdef Robot < StateObject
                 curWP = wp{k};          % aktueller Wegpunkt
                 this.move(curWP);       % zu aktuellem Wegpunkt fahren
                 
-                if this.checkPressureSensor()   % Falls Objekt noch am Sauger hängt
-                    success = 1;                 % Objekt hängt noch am Sauger   
-                else                            % falls Objekt nicht am Sauger hängt
+                if this.checkPressureSensor()   % Falls Objekt noch am Sauger hï¿½ngt
+                    success = 1;                 % Objekt hï¿½ngt noch am Sauger   
+                else                            % falls Objekt nicht am Sauger hï¿½ngt
                     this.switchVacuum(0);       % Vakuum ausschalten
-                    success = 0;                 % Rückmeldung, dass Objekt verloren wurde
-                    this.returnHome();          % Fahre zurück in die Home-Position
+                    success = 0;                 % Rï¿½ckmeldung, dass Objekt verloren wurde
+                    this.returnHome();          % Fahre zurï¿½ck in die Home-Position
                     break;                      % Schleife abbrechen
                 end
             end
@@ -319,7 +313,7 @@ classdef Robot < StateObject
             end
         end
         
-        % Fahre von Ablageposition zurück in Home-Position
+        % Fahre von Ablageposition zurï¿½ck in Home-Position
         function returnHome(this)
                         
             if isequal(round(this.readPose()), [528 41 385 -15  167 0])
@@ -334,7 +328,7 @@ classdef Robot < StateObject
                 this.move(wp);                      % Fahre zur Pose
             end
             
-            % Greifer schließen, dass er nicht im Weg steht
+            % Greifer schlieï¿½en, dass er nicht im Weg steht
             this.gripper.close();
             
             this.home();                        % Fahre zu Home-Position
@@ -363,7 +357,7 @@ classdef Robot < StateObject
             
             this.gripper.open();
             this.move(objPosition);
-            pause(5)% 5 cm über das Objekt fahren
+            pause(5)% 5 cm ï¿½ber das Objekt fahren
             this.gripper.close();
             pause(0.5);
             this.move(liftPosition);
@@ -372,7 +366,7 @@ classdef Robot < StateObject
         
         function success = moveObjectGripper(this)
             success = 1;
-            % Wegpunkte für Verfahrweg definieren
+            % Wegpunkte fï¿½r Verfahrweg definieren
             wp{1} = [90 -332 644 -177 -29 0];        % Pose: Hochfahren
             wp{2} = [400 94 760 -17 177 0];          % Pose: Drehen zu Rampe
             wp{3} = [528 41 385 -15  167 0];         % Pose: Einfahren in Rampe
@@ -382,11 +376,11 @@ classdef Robot < StateObject
                 curWP = wp{k};          % aktueller Wegpunkt
                 this.move(curWP);       % zu aktuellem Wegpunkt fahren
                 
-                if ~this.gripper.checkContact()  % Falls Objekt noch am Greifer hängt
-                    success = 1;                 % Objekt hängt noch am Greifer   
-                else                             % falls Objekt nicht am Greifer hängt
-                    success = 0;                 % Rückmeldung, dass Objekt verloren wurde
-                    this.returnHome();           % Fahre zurück in die Home-Position
+                if ~this.gripper.checkContact()  % Falls Objekt noch am Greifer hï¿½ngt
+                    success = 1;                 % Objekt hï¿½ngt noch am Greifer   
+                else                             % falls Objekt nicht am Greifer hï¿½ngt
+                    success = 0;                 % Rï¿½ckmeldung, dass Objekt verloren wurde
+                    this.returnHome();           % Fahre zurï¿½ck in die Home-Position
                     break;                       % Schleife abbrechen
                 end
             end
@@ -403,7 +397,7 @@ classdef Robot < StateObject
             % Stelle sicher, das Roboter in Home-Position ist
             this.home();
             % Lokalisiere Objekte auf Objekttisch und finde Koordinaten vom
-            % größten Objekt
+            % grï¿½ï¿½ten Objekt
             [xObj, yObj, locSuccess] = this.objDetection.locateObject();
             
             if (locSuccess)           % Falls ein Objekt lokalisiert wurde
@@ -417,7 +411,7 @@ classdef Robot < StateObject
                         this.sweep();               % kehre Objekttisch ab
                         success = 0;
                     else
-                        this.returnHome();          % Fahre Roboter zurück in die Home-Position
+                        this.returnHome();          % Fahre Roboter zurï¿½ck in die Home-Position
                     end
                 end
                 

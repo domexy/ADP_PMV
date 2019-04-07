@@ -12,17 +12,11 @@ classdef ObjectDetection < StateObject
     
     methods
         % Konstruktor
-        function this = ObjectDetection()
-            this = this@StateObject();
-            
+        function this = ObjectDetection(logger)
             if nargin < 1
-                this.logger.debug = @disp;
-                this.logger.info = @disp;
-                this.logger.warning = @disp;
-                this.logger.error = @disp;
-            else
-                this.logger = logger;
+                logger = [];
             end
+            this = this@StateObject(logger);
         end
         
         function init(this)
@@ -62,13 +56,13 @@ classdef ObjectDetection < StateObject
             % Weichzeichner anwenden
             frame2 = imgaussfilt(frame1,5);
             
-            % Umwandlung in Biärbild
+            % Umwandlung in Biï¿½rbild
             frame3 = im2bw(frame2,0.27);
             
-            % Binärbild maskieren, sodass nur der ROI betrachtet wird
+            % Binï¿½rbild maskieren, sodass nur der ROI betrachtet wird
             frame4 = frame3 .* this.roiMask;
 
-            % schwarze Löcher in Binärbild entfernen
+            % schwarze Lï¿½cher in Binï¿½rbild entfernen
             frame5 = logical(imfill(frame4,'holes'));
             
             pic = frame5;
@@ -85,7 +79,7 @@ classdef ObjectDetection < StateObject
 %             imshow(frame5)
         end
         
-        % Maske für Region of Interest erstellen
+        % Maske fï¿½r Region of Interest erstellen
         function mask = createRoiMask(this)
             mask = zeros(this.imgSize(1),this.imgSize(2));
             mask(this.roi(1):(this.roi(1)+this.roi(3)),this.roi(2):(this.roi(2)+this.roi(4))) = 1;
@@ -99,7 +93,7 @@ classdef ObjectDetection < StateObject
             % Foto aufnehmen
             img = this.takePicture();
             
-            % Schwerpunkte aller Objekte auf Binärbild finden
+            % Schwerpunkte aller Objekte auf Binï¿½rbild finden
             s = regionprops(img, 'Centroid','Area', 'BoundingBox');
             
             % Kleine Objekte aussortieren
@@ -119,18 +113,18 @@ classdef ObjectDetection < StateObject
 %             % Weichzeichner anwenden
 %             frame2 = imgaussfilt(frame1,7);
 %             
-%             % Umwandlung in Biärbild
+%             % Umwandlung in Biï¿½rbild
 %             frame3 = im2bw(frame2,0.5);
 %             
-%             % Binärbild maskieren, sodass nur der ROI betrachtet wird
+%             % Binï¿½rbild maskieren, sodass nur der ROI betrachtet wird
 %             frame4 = frame3 .* this.roiMask;
 % 
 %             
-%             % schwarze Löcher in Binärbild entfernen
+%             % schwarze Lï¿½cher in Binï¿½rbild entfernen
 %             frame5 = logical(imfill(frame4,'holes'));
             
 
-            % Schwerpunkte aller Objekte auf Binärbild finden
+            % Schwerpunkte aller Objekte auf Binï¿½rbild finden
             s = regionprops(img, 'Centroid','Area', 'BoundingBox');
             figure(2)
             imshow(img)
@@ -143,12 +137,12 @@ classdef ObjectDetection < StateObject
             
             % Falls mindestens ein Objekt gefunden wurde
             if length(s) > 0
-                % Kontrollfoto für Schwerpunkte anzeigen
+                % Kontrollfoto fï¿½r Schwerpunkte anzeigen
                 
                 plot(centroids(:,1),centroids(:,2), 'r*')
                 hold on 
 
-                % Pixel-Koordinaten des größten Objekts für Rückgabe
+                % Pixel-Koordinaten des grï¿½ï¿½ten Objekts fï¿½r Rï¿½ckgabe
                 % bestimmen
 
                 [maxVal, maxIdx] = max([s.Area]);

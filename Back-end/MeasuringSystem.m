@@ -20,24 +20,18 @@ classdef MeasuringSystem < StateObject
      methods
         % Konstruktor
         function this = MeasuringSystem(logger)
-            this = this@StateObject();
-            
             if nargin < 1
-                this.logger.debug = @disp;
-                this.logger.info = @disp;
-                this.logger.warning = @disp;
-                this.logger.error = @disp;
-            else
-                this.logger = logger;
+                logger = [];
             end
+            this = this@StateObject(logger);
         end
         
         function init(this,cANbus)
             this.cANbus = cANbus;
-            this.scale = Scale();
-            this.weighingBelt = WeighingBelt();
-            this.light = Lighting();
-            this.cam = Camera();
+            this.scale = Scale(this.logger);
+            this.weighingBelt = WeighingBelt(this.logger);
+            this.light = Lighting(this.logger);
+            this.cam = Camera(this.logger);
             
             this.scale.init('COM1', cANbus);
             this.weighingBelt.init(cANbus);

@@ -11,16 +11,10 @@ classdef ConveyorBelt < StateObject
     methods
         % Konstruktor
         function this = ConveyorBelt(logger)
-            this = this@StateObject();
-            
             if nargin < 1
-                this.logger.debug = @disp;
-                this.logger.info = @disp;
-                this.logger.warning = @disp;
-                this.logger.error = @disp;
-            else
-                this.logger = logger;
+                logger = [];
             end
+            this = this@StateObject(logger);
         end
         
         function init(this, cANbus)
@@ -33,17 +27,17 @@ classdef ConveyorBelt < StateObject
         function delete(this)
             this.stop();
         end
-        % Förderband starten
+        % Fï¿½rderband starten
         function start(this)
             this.cANbus.sendMsg(512, 1);
             this.status = 1;
-            disp('ConveyorBelt.m --> Förderband gestartet');
+            disp('ConveyorBelt.m --> Fï¿½rderband gestartet');
         end
-        % Förderband stoppen
+        % Fï¿½rderband stoppen
         function stop(this)
             this.cANbus.sendMsg(512, 0);
             this.status = 0;
-            disp('ConveyorBelt.m --> Förderband angehalten');
+            disp('ConveyorBelt.m --> Fï¿½rderband angehalten');
         end
         
         function success = isolate(this)
@@ -61,11 +55,11 @@ classdef ConveyorBelt < StateObject
             pause(0.4);
             this.stop();
         end
-%         % Förderband starten nach Unterbrechung der Lichtschranke
+%         % Fï¿½rderband starten nach Unterbrechung der Lichtschranke
 %         function startInterruption(obj, eventObj, event)
 %             obj.start();
 %         end
-%         % Förderband stoppen durch Unterbrechung der Lichtschranke
+%         % Fï¿½rderband stoppen durch Unterbrechung der Lichtschranke
 %         function stopInterruption(obj, eventObj, event)
 %             obj.stop();
 %         end

@@ -12,23 +12,17 @@ classdef CANbus < StateObject
     methods
         % Konstruktor
         function this = CANbus(logger)
-            this = this@StateObject();
-            
             if nargin < 1
-                this.logger.debug = @disp;
-                this.logger.info = @disp;
-                this.logger.warning = @disp;
-                this.logger.error = @disp;
-            else
-                this.logger = logger;
+                logger = [];
             end
+            this = this@StateObject(logger);
         end
         
         function init(this)
             % Versuche Channel zu starten 
             try
                 this.startChannel();
-            % Ansonsten versuche den Channel zuerst zu schließen
+            % Ansonsten versuche den Channel zuerst zu schlieï¿½en
             catch
                 this.stopChannel();
                 this.startChannel();
@@ -81,7 +75,7 @@ classdef CANbus < StateObject
             switch msg.ID
                 case 256 % Nachrichten von MicroMod0 (Roboter)
                     this.counter = this.counter +1;
-                    if (this.msg_robot ~= msg.Data || this.counter >=10) % Wird bei Statusänderung oder alle 500ms aufgerufen
+                    if (this.msg_robot ~= msg.Data || this.counter >=10) % Wird bei Statusï¿½nderung oder alle 500ms aufgerufen
 %                         disp('CANbus.m --> Roboterdaten aktualisiert');
                         this.msg_robot = msg.Data;
                         notify(this, 'Status_Robot_Changed');
@@ -91,7 +85,7 @@ classdef CANbus < StateObject
                     
                 case 257 % Nachrichten von MicroMod1 (Messsystem)
                      if this.msg_meas ~= msg.Data
-%                         disp('CANbus.m --> Messsystemdaten verändert');
+%                         disp('CANbus.m --> Messsystemdaten verï¿½ndert');
                         this.msg_meas = msg.Data;
                         notify(this, 'Status_Measure_Changed');
                      end
@@ -111,7 +105,7 @@ classdef CANbus < StateObject
              end
         end
         % Dummy-Funktion, die ein Signal vom Roboter simuliert, dass ein
-        % neues Objekt zur Verfügung steht
+        % neues Objekt zur Verfï¿½gung steht
         function new(this)
             this.sendMsg(259, 1);
         end

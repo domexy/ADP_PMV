@@ -47,8 +47,7 @@ classdef Logger < handle
         
         function addToForbiddenFiles(this,filename)
             if nargin < 2
-               stack = dbstack;
-               filename = stack(2).file;
+               stack = 
             end
             this.forbidden_files = unique([this.forbidden_files, filename]);
         end
