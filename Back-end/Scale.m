@@ -41,6 +41,7 @@ classdef Scale < StateObject
 
             % Verbindung zum COM-Port �ffnen
             fopen(this.serialPort);
+            this.logger.info('Verbindung zur Waage hergestellt');
         end
         % Verbindung zur Waage trennen
         function disconnect(this)
@@ -50,11 +51,13 @@ classdef Scale < StateObject
             % Verbindung trennen und Speicher wieder freigeben
             delete(this.serialPort);
             clear this.serialPort;
+            this.logger.info('Verbindung zur Waage beendet');
         end
         
         % Tara-Funktion der Waage
         function zero(this)
             this.cANbus.sendMsg(516,1);
+            this.logger.info('Waage genullt');
         end
 
         % Masse von COM-Port auslesen
@@ -67,25 +70,27 @@ classdef Scale < StateObject
 %                 
 %             
 %             this.mass = mass;
-            
+            this.logger.info('Waage misst: TODO [g]');
        
         end
         
         function mass = awaitMass(this)
+            this.setStateActive('Masse bestimmen');
             timer = tic;
             
             while(true)
                 pause(0.1);
                 if (this.serialPort.BytesAvailable >= 15)
                     [mass,count,msg] = fscanf(this.serialPort,'\002%f g  \003');
-                    mass
+                    this.logger.info('Waage misst: TODO [g]');
                     break;
                 elseif (toc(timer) > 10)
-                    disp('Scale.m --> Mass nach 10 Sec. noch nicht da');
+                    this.logger.warning('Mass nach 10 Sec. noch nicht da');
                     break;
                 end
                 
             end
+            this.setStateOnline('Betriebsbereit');
         end
         
         

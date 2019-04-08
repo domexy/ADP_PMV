@@ -2,7 +2,8 @@ classdef StateObject < handle
     %BASEOBJECT Summary of this class goes here
     %   Detailed explanation goes here
     properties
-        logger
+        logger;
+        components = struct();
     end
     
     properties (Access = private)
@@ -38,9 +39,46 @@ classdef StateObject < handle
             this.setStateOffline();
         end
         
+        function addComponent(this, component_name, component)
+            isStateObject = false;
+            parents = superclasses(component);
+            for i=1:length(parents)
+                if strcmp(parents{i},class('StateObject'))
+                   isStateObject = true; 
+                end
+            end
+            if isStateObject
+                this.components.(component_name) = component;
+            else
+               this.logger.warning([component_name, ' ist keine Unterklasse von StateObject']); 
+            end
+        end
+        
         function state = getState(this)
             state = this.state;
         end
+        
+%         function state = checkState(this)
+%             self_state = this.checkSelfState();
+%             component_states = this.checkComponentStates();
+%             if self_state == this.ERROR
+%                 
+%             elseif self_state ~= this.OFFLINE
+%                 if max(component_states) > self_state
+%                     this.setState(max(component_states), '
+%                 end    
+%             else max(component_states) == this.ERROR
+%                 this.setStateError('Fehler einer Komponente');
+%             end
+%         end
+%         
+%         function states = checkComponentStates(this)
+%             states = [];
+%             fields = fieldsnames(this.components);
+%             for i = 1:length(fields) 
+%                 states(i) = this.components.(fields{i}).checkSelfState;
+%             end
+%         end
         
         function state_description = getStateDescription(this)
             state_description = this.state_description;
@@ -78,7 +116,48 @@ classdef StateObject < handle
             if nargin < 2
                state_description = '-Error-'; 
             end
-            this.setState(this.ERROR, state_description);
+                this.setState(this.ERROR, state_description);
+        end
+        
+        function changeState(this, state, state_description)
+            if this.getState() ~= state
+               this.setState(state, state_description)
+            end
+        end
+        
+        function changeStateOffline(this, state_description)
+            if nargin < 2
+               state_description = '-Offline-'; 
+            end
+            this.changeState(this.OFFLINE, state_description);
+        end
+        
+        function changeStateOnline(this, state_description)
+            if nargin < 2
+               state_description = '-Online-'; 
+            end
+            this.changeState(this.ONLINE, state_description);
+        end
+        
+        function changeStateActive(this, state_description)
+            if nargin < 2
+               state_description = '-Active-'; 
+            end
+            this.changeState(this.ACTIVE, state_description);
+        end
+        
+        function changeStateUnknown(this, state_description)
+            if nargin < 2
+               state_description = '-Unknown-'; 
+            end
+            this.changeState(this.UNKOWN, state_description);
+        end
+        
+        function changeStateError(this, state_description)
+            if nargin < 2
+               state_description = '-Error-'; 
+            end
+            this.changeState(this.ERROR, state_description);
         end
     end
     
@@ -91,6 +170,10 @@ classdef StateObject < handle
             this.state_description = state_description;
             this.logger.debug(state_change_message);
         end
+    end
+    
+    methods (Abstract)
+        updateState(this) 
     end
 end
 

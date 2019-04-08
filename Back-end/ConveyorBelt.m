@@ -31,13 +31,13 @@ classdef ConveyorBelt < StateObject
         function start(this)
             this.cANbus.sendMsg(512, 1);
             this.status = 1;
-            disp('ConveyorBelt.m --> F�rderband gestartet');
+            this.setStateActive('F�rderband gestartet');
         end
         % F�rderband stoppen
         function stop(this)
             this.cANbus.sendMsg(512, 0);
             this.status = 0;
-            disp('ConveyorBelt.m --> F�rderband angehalten');
+            this.setStateOnline('F�rderband angehalten');
         end
         
         function success = isolate(this)
@@ -47,7 +47,7 @@ classdef ConveyorBelt < StateObject
             while (this.cANbus.statusLightBarrier1() == 0)
                 pause(0.1)
                 if (toc > 30)
-                    disp('ConveyorBelt.m --> Timeout: Lichtschranke1');
+                    this.logger.warning('Timeout: Lichtschranke1');
                     success = 0;
                     break;
                 end

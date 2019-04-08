@@ -23,7 +23,7 @@ classdef Camera < StateObject
         function init(this)
              % Matlab R2014b starten und einen Instant der
             % Kamera-Server-Klasse in der Variablen s speichern
-            !"C:\Program Files\MATLAB\R2014b\bin\matlab.exe" -r "s = CameraServer()"
+            !"C:\Program Files\MATLAB\R2014b\bin\matlab.exe" -r "s = CameraServer([])"
 
             % TCPIP-Verbindung konfigurieren
             this.tcpip = tcpip('127.0.0.1', 55000, 'NetworkRole', 'client');
@@ -34,18 +34,19 @@ classdef Camera < StateObject
             
             % Versuche 20x die Verbindung zu Matlab R2014b aufzubauen
             for i = 1:20
+                this.logger.info('Verbindung zur Kamera wird aufgebaut ...');
                 try
                     pause(1)                % kurze Pause
                     this.openClient();      % Verbindung aufbauen
-                    disp('Camera.m --> Verbindung zur Kamera hergestellt');
+                    this.logger.info('Verbindung zur Kamera hergestellt');
                     break;
                 catch
                     if (mod(i,5) == 1)      % R�ckmeldung, dass weiter versucht wird, Verbindung aufzubauen
-                        disp('Camera.m --> Verbindung zur Kamera wird aufgebaut ...');
+                        this.logger.warning('Erneuter Verindungsversuch ...');
                     end
                     
                     if i == 20              % R�ckmeldung, dass Verbindung fehlgeschlagen ist.
-                        disp('Camera.m --> Verbindung zur Kamera fehlgeschlagen!');
+                        this.logger.error('Verbindung zur Kamera fehlgeschlagen!');
                     end
                 end
             end
@@ -82,13 +83,12 @@ classdef Camera < StateObject
                 try
                     pause(1)                        % kurze Pause
                     load('image.mat', 'image');     % Foto laden
-                    if this.debug disp('Camera.m --> Foto geladen ...'); end
+                    this.logger.debug('Foto geladen ...');
                     break;
                 catch
-                    if this.debug disp('Camera.m --> Foto laden ...'); end
-                    
+                    this.logger.debug('Foto laden ...');
                     if i == 5
-                        if this.debug disp('Camera.m --> Foto laden fehlgeschlagen!'); end
+                        this.logger.warning('Foto laden fehlgeschlagen!');
                     end
                 end
             end
@@ -99,10 +99,12 @@ classdef Camera < StateObject
         
         % Ein wei�es und ein UV-Foto aufnehmen
         function takePhotos(this)
+            this.setStateActive('RGB-Foto aufnehmen');
             this.light.changeLighting(0);
             this.light.changeLighting(16);
             pause(1)
             this.imgRGB = this.requestFoto();
+            this.setStateActive('UV-Foto aufnehmen');
             this.light.changeLighting(1);
             pause(1)
             this.imgUV = this.requestFoto();
@@ -113,6 +115,7 @@ classdef Camera < StateObject
             imshow(this.imgRGB);
             figure(2)
             imshow(this.imgUV);
+            this.setStateOnline('Betriebsbereit');
         end           
         
     end

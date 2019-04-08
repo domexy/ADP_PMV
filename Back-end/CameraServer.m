@@ -27,7 +27,7 @@ classdef CameraServer < StateObject
             this.src.ExposureTimeAbs = 50000; 
             this.src.AllGainAuto = 'Off'; 
             this.src.AllGain = 6; 
-            disp('server.m --> Kamera initialisiert');
+            this.logger.debug('Kamera initialisiert');
             
             % TCPIP-Verbinung konfigurieren
             this.tcpip = tcpip('0.0.0.0',55000,'NetworkRole','Server');
@@ -38,7 +38,7 @@ classdef CameraServer < StateObject
             
             % Verbindung aufbauen
             fopen(this.tcpip);
-            disp('server.m --> Verbindung aufgebaut');
+            this.logger.debug('Verbindung aufgebaut');
             
             this.setStateOnline('Initialisiert');
         end
@@ -48,7 +48,7 @@ classdef CameraServer < StateObject
             dummy = fread(this.tcpip);          % gesendetes Byte auslesen
             image = getsnapshot(this.cam);  % Foto aufnehmen
             save('image.mat','image');       % Foto speichern
-            disp('server.m --> Foto aufgenommen');
+            this.logger.debug('Foto aufgenommen');
         end
         
         function image = takePictureRaw(this)

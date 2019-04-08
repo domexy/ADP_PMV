@@ -29,29 +29,29 @@ classdef Gripper < StateObject
             angle = 0;
         	writePosition(this.servo1, angle+this.offset);
             writePosition(this.servo2, angle);
+            this.setStateOnline('Offen');
         end
         
         function close(this)
             angle = 0.60;
             writePosition(this.servo1, angle + this.offset);
             writePosition(this.servo2, angle);
-%             pause(0.5)
-%             writePosition(this.servo1, angle + this.offset + 0.02);
-%             writePosition(this.servo2, angle +0.02);
+            this.setStateActive('Geschlossen');
         end
         
         function setAngles(this, angle1, angle2)
             writePosition(this.servo1, angle1);
             writePosition(this.servo2, 1-angle2);
+            this.setStateUnknown(['Winkel = [',num2str(angle1),',',num2str(angle2),']'])
         end
         
-        function readAngles(this)
+        function [pos1, pos2] = readAngles(this)
             pos1 = readPosition(this.servo1);
             pos1 = pos1*180;
-            fprintf('Current motor position1 is %d degrees\n', pos1);
+%             fprintf('Current motor position1 is %d degrees\n', pos1);
             pos2 = readPosition(this.servo2);
             pos2 = pos2*180;
-            fprintf('Current motor position2 is %d degrees\n', pos2);
+%             fprintf('Current motor position2 is %d degrees\n', pos2);
         end
         
         % return 1: Greiferarme haben Kontakt, 
@@ -60,7 +60,10 @@ classdef Gripper < StateObject
             this.close();
             this.mega.configurePin('D9','pullup');
             status = ~this.mega.readDigitalPin('D9');
-            disp(status);
+            if status
+                this.logger.warning('Greifer hat kein Objekt');
+            end
+            % disp(status);
         end
     end
     

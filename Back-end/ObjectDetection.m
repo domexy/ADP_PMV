@@ -51,6 +51,7 @@ classdef ObjectDetection < StateObject
         
         % Foto mit Webcam aufnehmen und bearbeiten
         function pic = takePicture(this)
+            this.setStateActive('Foto Aufnehmen');
             frame1 = snapshot(this.cam);
             
             % Weichzeichner anwenden
@@ -66,17 +67,7 @@ classdef ObjectDetection < StateObject
             frame5 = logical(imfill(frame4,'holes'));
             
             pic = frame5;
-            
-%             figure(2)
-%             imshow(frame1)
-%             figure(3)
-%             imshow(frame2)
-%             figure(4)
-%             imshow(frame3)
-%             figure(5)
-%             imshow(frame4)
-%             figure(6)
-%             imshow(frame5)
+            this.setStateOnline('Foto aufnehmen beendet');
         end
         
         % Maske f�r Region of Interest erstellen
@@ -89,7 +80,7 @@ classdef ObjectDetection < StateObject
         % Schauen, ob Objekt auf Objekttisch liegt
         function status = objectOnTable(this)
             status = 0;
-            
+            this.setStateActive('Objekt detektieren');
             % Foto aufnehmen
             img = this.takePicture();
             
@@ -101,12 +92,17 @@ classdef ObjectDetection < StateObject
             s(smallObjectIds) = []; 
             
             if (length(s) > 0)
+                this.logger.info('Objekt auf dem Tisch');
                 status = 1;
+            else
+                this.logger.warning('Kein Objekt auf dem Tisch');
             end
+            this.setStateOnline('Betriebsbereit');
         end
         
         % Objekt lokalisieren
         function [x,y, success] = locateObject(this)
+            this.setStateActive('Objekt lokalisieren');
             % Foto aufnehmen
             img = this.takePicture();
 %             

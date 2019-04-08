@@ -23,10 +23,12 @@ classdef DrumFeeder < StateObject
         
         function start(this)
             this.mega.writePWMVoltage('D8',4.65); % max = 5 Volt
+            this.setStateActive('Rotiert');
         end
         
         function stop(this)
             this.mega.writePWMVoltage('D8',0);
+            this.setStateOnline('Betriebsbereit');
         end
         
         function success = isolate(this)
@@ -36,7 +38,7 @@ classdef DrumFeeder < StateObject
             while (this.cANbus.statusLightBarrier1() == 0)
                 pause(0.1)
                 if (toc > 180)
-                    disp('DrumFeeder.m --> Timeout: Lichtschranke1');
+                    this.logger.warning('Timeout: Lichtschranke1');
                     success = 0;
                     break;
                 end

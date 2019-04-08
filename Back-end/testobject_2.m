@@ -1,9 +1,9 @@
-classdef testobject < StateObject
+classdef testobject_2 < StateObject
     %TESTOBJECT Summary of this class goes here
     %   Detailed explanation goes here
     
     properties
-        Property1 = 0;
+        Property1
     end
     
     methods
@@ -18,14 +18,6 @@ classdef testobject < StateObject
             this.setStateActive('test')
             this.setStateActive('test2')
             this.logger.debug('bla')
-        end
-        
-        function updateState(this)
-            if this.Property1 <= 0
-                if this.getState() ~= this.ERROR
-                    this.changeStateError('prop kleiner 0');
-                end
-            end
         end
     end
 end

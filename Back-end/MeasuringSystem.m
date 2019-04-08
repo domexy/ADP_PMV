@@ -46,13 +46,13 @@ classdef MeasuringSystem < StateObject
         function [success, error] = measure(this)
             success = 1;
             error = 0;
-            disp('MeasuringSystem.m --> Messung gestartet');
+            this.setStateActive('Messung gestartet');
             this.cam.takePhotos();
 %             this.simulateCamera();
 
             this.scale.awaitMass();
 %             this.scale.zero();
-            disp('MeasuringSystem.m --> Messung beendet');
+            this.setStateOnline('Messung beendet');
         end
         
         function startConvBelt(this,~,~)
