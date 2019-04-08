@@ -13,10 +13,11 @@ classdef ConveyorBelt < StateObject
                 logger = [];
             end
             this = this@StateObject(logger);
+            
+            this.cANbus = cANbus;
         end
         
-        function init(this, cANbus)
-            this.cANbus = cANbus;
+        function init(this)
 %             this.listenerStart = addlistener(this.cANbus,'StartConveyorBelt',@this.startInterruption);
 %             this.listenerStop = addlistener(this.cANbus,'LightBarrierInterruption',@this.stopInterruption);
             this.setStateOnline('Initialisiert');
@@ -62,9 +63,7 @@ classdef ConveyorBelt < StateObject
 %             obj.stop();
 %         end
         function updateState(this)
-            if this.getState ~= this.OFFLINE
-                
-            end
+            
         end
     end
     

@@ -1,7 +1,5 @@
 classdef Camera < StateObject
-    properties
-        logger;
-        
+    properties     
         tcpip
         debug = 0;
         light;
@@ -116,8 +114,13 @@ classdef Camera < StateObject
             figure(2)
             imshow(this.imgUV);
             this.setStateOnline('Betriebsbereit');
-        end           
+        end
         
+        function updateState(this)
+           if this.getState ~= this.OFFLINE
+                
+            end 
+        end 
     end
 end
 

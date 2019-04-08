@@ -1,7 +1,5 @@
 classdef Robot < StateObject
     properties
-        logger;
-        
         ur5
         objDetection
         homePose = [26 -290 447 180 0 0];
@@ -450,7 +448,12 @@ classdef Robot < StateObject
             end
             
         end
-             
+        
+        function updateState(this)
+           if this.getState ~= this.OFFLINE
+                
+            end 
+        end
     end
     
     events

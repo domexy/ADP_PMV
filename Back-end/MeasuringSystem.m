@@ -1,7 +1,5 @@
 classdef MeasuringSystem < StateObject
     properties
-        logger;
-        
         cANbus;
         status;
         cam;
@@ -71,6 +69,12 @@ classdef MeasuringSystem < StateObject
             pause(2);
             this.light.changeLighting(0);
             
+        end
+        
+        function updateState(this)
+            if this.getState ~= this.OFFLINE
+                
+            end
         end
      end
 end

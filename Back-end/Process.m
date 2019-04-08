@@ -2,9 +2,7 @@ classdef Process < StateObject
     % Process wird als �berklasse f�r den gesamten Prozess in der Messanlage verwendet 
     
     
-    properties
-        logger;
-        
+    properties        
         isoDevice;      % Vereinzelungsanlage inkl. F�rderband, Objekterkennung und Roboter
         measSystem;     % Messystem inkl. R�derband, Waage und Kamera
         cANbus;
@@ -48,6 +46,12 @@ classdef Process < StateObject
             end
             this.logger.info(['Iteration ', num2str(i) ,' abgeschlossen']);
             this.setStateOnline('Betriebsbereit');
+        end
+        
+        function updateState(this)
+            if this.getState ~= this.OFFLINE
+                
+            end
         end
     end
 end

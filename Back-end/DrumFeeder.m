@@ -1,7 +1,5 @@
 classdef DrumFeeder < StateObject
-    properties
-        logger;
-        
+    properties        
         mega;   % Arduino Mega 2560
         cANbus;
     end
@@ -45,6 +43,12 @@ classdef DrumFeeder < StateObject
             end
             pause(0.2);
             this.stop();
+        end
+        
+        function updateState(this)
+            if this.getState ~= this.OFFLINE
+                
+            end
         end
     end
 end

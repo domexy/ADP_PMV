@@ -1,7 +1,5 @@
 classdef WeighingBelt < StateObject
     properties
-        logger;
-        
         cANbus;
         status;
     end
@@ -37,6 +35,11 @@ classdef WeighingBelt < StateObject
             this.setStateActive('Gestoppt');
         end
         
+        function updateState(this)
+           if this.getState ~= this.OFFLINE
+                
+            end 
+        end
     end
     
     events

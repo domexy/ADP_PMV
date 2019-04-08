@@ -1,7 +1,5 @@
 classdef Gripper < StateObject
     properties
-        logger;
-        
         mega;   % Arduino Mega 2560
         servo1;
         servo2;
@@ -16,8 +14,7 @@ classdef Gripper < StateObject
             this = this@StateObject(logger);
         end
         
-        function init(this, mega)
-            this.mega = mega;
+        function init(this)            
             this.servo1 = servo(this.mega, 'D11');
             this.servo2 = servo(this.mega, 'D12');
             this.offset = 0.065;
@@ -64,6 +61,12 @@ classdef Gripper < StateObject
                 this.logger.warning('Greifer hat kein Objekt');
             end
             % disp(status);
+        end
+        
+        function updateState(this)
+            if this.getState ~= this.OFFLINE
+                
+            end
         end
     end
     

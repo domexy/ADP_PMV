@@ -1,7 +1,5 @@
 classdef ObjectDetection < StateObject
     properties
-        logger;
-        
         cam
         cam2
         frame
@@ -182,6 +180,12 @@ classdef ObjectDetection < StateObject
 
             y = 1.569*py -841.3;
 
+        end
+        
+        function updateState(this)
+            if this.getState ~= this.OFFLINE
+                
+            end
         end
     end
     

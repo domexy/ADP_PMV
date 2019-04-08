@@ -1,7 +1,5 @@
 classdef Lighting < StateObject
     properties
-        logger;
-        
         lpt
     end
     
@@ -31,6 +29,12 @@ classdef Lighting < StateObject
             ps = java.io.PrintStream(os); % define PrintStream
             ps.write(byte); % write into buffer 
             ps.close % flush buffer and close stream
+        end
+        
+        function updateState(this)
+           if this.getState ~= this.OFFLINE
+                
+            end 
         end
     end
     

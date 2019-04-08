@@ -1,7 +1,5 @@
 classdef IsolationDevice < StateObject
     properties
-        logger;
-        
         robot;
         convBelt;
         cANbus;
@@ -72,7 +70,12 @@ classdef IsolationDevice < StateObject
                 this.isolateObject()
             end
         end
-
+        
+        function updateState(this)
+            if this.getState ~= this.OFFLINE
+                
+            end
+        end
     end
     
     events

@@ -1,7 +1,5 @@
 classdef CameraServer < StateObject
     properties
-        logger;
-        
         tcpip
         cam
         src
@@ -53,6 +51,12 @@ classdef CameraServer < StateObject
         
         function image = takePictureRaw(this)
             image = getsnapshot(this.cam);  % Foto aufnehmen
+        end
+        
+        function updateState(this)
+            if this.getState ~= this.OFFLINE
+                
+            end
         end
     end
 end

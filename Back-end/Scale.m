@@ -1,7 +1,5 @@
 classdef Scale < StateObject
     properties
-        logger;
-        
         serialPort;
         portID = '';    % z.B. COM7
         mass;
@@ -93,7 +91,11 @@ classdef Scale < StateObject
             this.setStateOnline('Betriebsbereit');
         end
         
-        
+        function updateState(this)
+           if this.getState ~= this.OFFLINE
+                
+            end 
+        end
     end
     
     events
