@@ -16,12 +16,14 @@ classdef Camera < StateObject
                 logger = [];
             end
             this = this@StateObject(logger);
+            
+            this.light = Lighting(this.logger);
         end
         
         function init(this)
              % Matlab R2014b starten und einen Instant der
             % Kamera-Server-Klasse in der Variablen s speichern
-            !"C:\Program Files\MATLAB\R2014b\bin\matlab.exe" -r "s = CameraServer([])"
+            !"C:\Program Files\MATLAB\R2014b\bin\matlab.exe" -r "addpath('Back-end');s = CameraServer([])"
 
             % TCPIP-Verbindung konfigurieren
             this.tcpip = tcpip('127.0.0.1', 55000, 'NetworkRole', 'client');
@@ -44,13 +46,13 @@ classdef Camera < StateObject
                     end
                     
                     if i == 20              % R�ckmeldung, dass Verbindung fehlgeschlagen ist.
-                        this.logger.error('Verbindung zur Kamera fehlgeschlagen!');
+                        this.setStateError('Verbindung zur Kamera fehlgeschlagen!');
+                        return
                     end
                 end
             end
             
             % Verbindung zur Beleuchtung herstellen
-            this.light = Lighting(this.logger);
             this.light.init('LPT1');
             this.light.changeLighting(0);
             

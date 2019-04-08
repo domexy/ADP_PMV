@@ -47,7 +47,7 @@ classdef CANbus < StateObject
         end
         % Nachricht senden
         function sendMsg(this, canID, data)
-            this.setStateActive('Sende Nachricht');
+%             this.setStateActive('Sende Nachricht');
             % Versuche die Nachricht zu senden
             try
                 msg = canMessage(canID, false, 1);
@@ -58,11 +58,11 @@ classdef CANbus < StateObject
                 this.setStateError('Fehler beim Senden der CAN-Nachricht');
                 rethrow(ME)
             end
-            this.setStateOnline('Betriebsbereit');
+%             this.setStateOnline('Betriebsbereit');
         end
         % Nachricht empfangen
         function receiveMsg(this,ch)
-            this.setStateActive('Empfange Nachricht');
+%             this.setStateActive('Empfange Nachricht');
             msg = receive(ch, Inf);
             msg_1 = msg(1);
             analyseData(this,msg_1);
@@ -71,7 +71,7 @@ classdef CANbus < StateObject
                 msg_2 = msg(2);
                 analyseData(this,msg_2);
             end
-            this.setStateOnline('Betriebsbereit');
+%             this.setStateOnline('Betriebsbereit');
         end
 
         function analyseData(this,msg)
@@ -102,7 +102,7 @@ classdef CANbus < StateObject
 %                         disp('CANbus.m --> Lichtschranke nicht mehr unterbrochen');
                     end
                 case 518
-                    this.logger.info('Nachricht erhalten');
+%                     this.logger.info('Nachricht erhalten');
                     notify(this, 'StartMeasurement')
                      
              end

@@ -15,21 +15,27 @@ classdef Process < StateObject
                 logger = [];
             end
             this = this@StateObject(logger);
+            
+            this.cANbus = CANbus(this.logger);
+            this.measSystem = MeasuringSystem(this.logger);
+            this.isoDevice = IsolationDevice(this.logger);
         end
         
         function init(this)
             % Baut Verbindung zum Prozess selbst auf
-            this.cANbus = CANbus(this.logger);
-            this.measSystem = MeasuringSystem(this.logger);
-            this.isoDevice = IsolationDevice(this.logger);
             this.cANbus.init()
             this.measSystem.init(this.cANbus)
             this.isoDevice.init(this.cANbus)
             
             this.setStateOnline('Initialisiert');
+            % Da Process die Top-Level Klasse ist wird hier auch auf dem INFO Level geloggt
+            this.logger.info('Prozessinitialisierung abgeschlossen'); 
         end
         
         function run(this, num_iterations)
+            if nargin < 2
+                num_iterations = 1;
+            end
             this.logger.info(['Prozess gestartet f�r ', num2str(num_iterations) ,' Iterationen']);
             for i=1:num_iterations
                 this.setStateActive('Objekt Isolieren');

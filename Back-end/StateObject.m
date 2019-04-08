@@ -21,7 +21,7 @@ classdef StateObject < handle
             'OFFLINE',...
             'ONLINE',...
             'ACTIVE',...
-            'UNKNWON',...
+            'UNKNOWN',...
             'ERROR'};
     end
     
@@ -34,7 +34,9 @@ classdef StateObject < handle
                 this.logger.error = @disp;
             else
                 this.logger = logger;
-                this.logger.addToForbiddenFiles();
+                if strcmp(class(logger),'Logger.Logger')
+                    this.logger.addToForbiddenFiles();
+                end
             end
             this.setStateOffline();
         end

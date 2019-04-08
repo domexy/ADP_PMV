@@ -14,13 +14,14 @@ classdef IsolationDevice < StateObject
                 logger = [];
             end
             this = this@StateObject(logger);
+            
+            this.convBelt = ConveyorBelt(this.logger);
+            this.robot = Robot(this.logger);
+            this.drumFeeder = DrumFeeder(this.logger);
         end
         
         function init(this,cANbus)
             this.cANbus = cANbus;
-            this.convBelt = ConveyorBelt(this.logger);
-            this.robot = Robot(this.logger);
-            this.drumFeeder = DrumFeeder(this.logger);
             this.mega = arduino('COM7', 'Mega2560', 'Libraries', 'Servo');
             
             this.convBelt.init(cANbus);

@@ -16,6 +16,9 @@ classdef Robot < StateObject
                 logger = [];
             end
             this = this@StateObject(logger);
+            
+            this.objDetection = ObjectDetection(this.logger);
+            this.gripper = Gripper(this.logger);
         end
         
         function init(this,cANbus, mega)
@@ -26,13 +29,10 @@ classdef Robot < StateObject
             fopen(this.ur5);
             this.logger.info('Roboter Verbunden!');
             
-            this.objDetection = ObjectDetection(this.logger);
             this.cANbus = cANbus;
             
-            this.gripper = Gripper(this.logger);
-            
-            this.gripper.init(mega);
             this.objDetection.init();
+            this.gripper.init(mega);
             
             this.home();
             
@@ -93,7 +93,7 @@ classdef Robot < StateObject
                 P = [pose,orientation];
             end
             
-            if (P(2) < -722) || (P(2) > -290)
+            if (P(2) < -722)
                 this.logger.warning('Ungültige Y-Position');
                 error('error; invalid Y-Position')
             end
@@ -132,7 +132,7 @@ classdef Robot < StateObject
                 pose1 = this.readPose();    % Aktuelle Position auslesen
                 pause(0.1);                 % Kurz warten
                 pose2 = this.readPose();    % Nochmal Position auslesen
-                    this.setStateActive('Verfahre...');
+                    this.changeStateActive('Verfahre...');
                 if(isequal(pose1,pose2))    % Falls die beiden Positionen gleich sind...
                     this.setStateOnline('Pose erreicht');
                     break;                  % ...abbrechen, weil Endposition erreicht wurde

@@ -11,6 +11,8 @@ classdef CameraServer < StateObject
                 logger = [];
             end
             this = this@StateObject(logger);
+            
+            this.init(); % Da es keine Abhängigkeiten zu anderen StateObjects gibt
         end
         
         function init(this)

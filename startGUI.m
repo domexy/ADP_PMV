@@ -1,13 +1,17 @@
-function [process_handle, gui_handle] = startGUI()
+function [process, gui] = startGUI()
 addpath(genpath('Front-end'))
 addpath(genpath('Back-end'))
 
-logger_handle = Logger.Logger();
+logger = Logger.Logger();
 
-process_handle = '';
-% process_handle = Process();
-
-gui_handle = ProcessGUI(process_handle, logger_handle);
+% process_handle = '';
+logger.info('Starte Prozessgenerierung...');
+process = Process(logger);
+logger.info('Prozessgenerierung abgeschlossen!')
+pause(0.001)
+logger.info('Starte GUI-Generierung...');
+gui = ProcessGUI(process, logger);
+logger.info('GUI-Generierung abgeschlossen!')
 
 end
 

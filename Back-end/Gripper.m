@@ -14,7 +14,8 @@ classdef Gripper < StateObject
             this = this@StateObject(logger);
         end
         
-        function init(this)            
+        function init(this, mega)   
+            this.mega = mega;
             this.servo1 = servo(this.mega, 'D11');
             this.servo2 = servo(this.mega, 'D12');
             this.offset = 0.065;

@@ -22,14 +22,15 @@ classdef MeasuringSystem < StateObject
                 logger = [];
             end
             this = this@StateObject(logger);
-        end
-        
-        function init(this,cANbus)
-            this.cANbus = cANbus;
+            
             this.scale = Scale(this.logger);
             this.weighingBelt = WeighingBelt(this.logger);
             this.light = Lighting(this.logger);
             this.cam = Camera(this.logger);
+        end
+        
+        function init(this,cANbus)
+            this.cANbus = cANbus;
             
             this.scale.init('COM1', cANbus);
             this.weighingBelt.init(cANbus);
