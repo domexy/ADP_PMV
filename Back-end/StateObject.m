@@ -12,17 +12,20 @@ classdef StateObject < handle
     end
     
     properties (Constant)
-        OFFLINE = 1;
-        ONLINE = 2;
-        ACTIVE = 3;
-        UNKOWN = 4;
-        ERROR = 5;
+        OFFLINE = 1;    % Objekt ist Matlabseitig initialisiert, hat jedoch noch keine Verbindung zum physischen Objekt
+        INACTIVE = 2;   % Objekt ist Einsatzbereit und hat keinen Auftrag
+        ACTIVE = 3;     % Objekt führt einen Auftrag aus
+        UNKOWN = 4;     % Objektzustand ist unbekannt
+        STOPPED = 5;    % Objekt ist gestoppt und führt keine Aufträge aus
+        ERROR = 6;      % Objekt hat einen Fehler und führt keine Aufträge aus
         STATE_STRINGS = {...
             'OFFLINE',...
-            'ONLINE',...
+            'INACTIVE',...
             'ACTIVE',...
             'UNKNOWN',...
+            'STOPPED',...
             'ERROR'};
+        READY_STATES = [1,2,3,4];
     end
     
     methods
@@ -93,11 +96,11 @@ classdef StateObject < handle
             this.setState(this.OFFLINE, state_description);
         end
         
-        function setStateOnline(this, state_description)
+        function setStateInactive(this, state_description)
             if nargin < 2
-               state_description = '-Online-'; 
+               state_description = '-Inactive-'; 
             end
-            this.setState(this.ONLINE, state_description);
+            this.setState(this.INACTIVE, state_description);
         end
         
         function setStateActive(this, state_description)
@@ -112,6 +115,13 @@ classdef StateObject < handle
                state_description = '-Unknown-'; 
             end
             this.setState(this.UNKOWN, state_description);
+        end
+        
+        function setStateStopped(this, state_description)
+            if nargin < 2
+               state_description = '-Stopped-'; 
+            end
+                this.setState(this.STOPPED, state_description);
         end
         
         function setStateError(this, state_description)
@@ -134,11 +144,11 @@ classdef StateObject < handle
             this.changeState(this.OFFLINE, state_description);
         end
         
-        function changeStateOnline(this, state_description)
+        function changeStateInactive(this, state_description)
             if nargin < 2
-               state_description = '-Online-'; 
+               state_description = '-Inactive-'; 
             end
-            this.changeState(this.ONLINE, state_description);
+            this.changeState(this.INACTIVE, state_description);
         end
         
         function changeStateActive(this, state_description)
@@ -155,11 +165,22 @@ classdef StateObject < handle
             this.changeState(this.UNKOWN, state_description);
         end
         
+        function changeStateStopped(this, state_description)
+            if nargin < 2
+               state_description = '-Stopped-'; 
+            end
+            this.changeState(this.STOPPED, state_description);
+        end
+        
         function changeStateError(this, state_description)
             if nargin < 2
                state_description = '-Error-'; 
             end
             this.changeState(this.ERROR, state_description);
+        end
+        
+        function ready = isReady(this)
+            ready = any(this.getState() == this.READY_STATES);
         end
     end
     
@@ -169,6 +190,7 @@ classdef StateObject < handle
                 this.STATE_STRINGS{this.state}, '(', this.state_description,')'...
                 ' -> ', this.STATE_STRINGS{state}, '(', state_description,')'];
             this.state = state;
+            this.onStateChange();
             this.state_description = state_description;
             this.logger.debug(state_change_message);
         end
@@ -176,6 +198,7 @@ classdef StateObject < handle
     
     methods (Abstract)
         updateState(this) 
+        onStateChange(this)
     end
 end
 

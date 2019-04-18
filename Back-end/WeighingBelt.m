@@ -16,11 +16,13 @@ classdef WeighingBelt < StateObject
         function init(this,cANbus)
             this.cANbus = cANbus;
             
-            this.setStateOnline('Initialisiert');
+            this.setStateInactive('Initialisiert');
         end
         % Destruktor
         function delete(this)
-            this.stop();
+            try
+                this.stop();
+            end
         end
         % F�rderband starten
         function start(this)
@@ -39,6 +41,12 @@ classdef WeighingBelt < StateObject
            if this.getState ~= this.OFFLINE
                 
             end 
+        end
+        
+        function onStateChange(this)
+            if ~this.isReady()
+
+            end
         end
     end
     

@@ -2,6 +2,7 @@ classdef DrumFeeder < StateObject
     properties        
         mega;   % Arduino Mega 2560
         cANbus;
+        drum_voltage = 4.65;
     end
     
     methods
@@ -16,17 +17,17 @@ classdef DrumFeeder < StateObject
             this.mega = mega;
             this.cANbus = cANbus;
             
-            this.setStateOnline('Initialisiert');
+            this.setStateInactive('Initialisiert');
         end
         
         function start(this)
-            this.mega.writePWMVoltage('D8',4.65); % max = 5 Volt
-            this.setStateActive('Rotiert');
+            this.mega.writePWMVoltage('D8',this.drum_voltage); % max = 5 Volt
+            this.setStateActive(['Rotiert @',num2str(this.drum_voltage),'V']);
         end
         
         function stop(this)
             this.mega.writePWMVoltage('D8',0);
-            this.setStateOnline('Betriebsbereit');
+            this.setStateInactive('Gestoppt');
         end
         
         function success = isolate(this)
@@ -48,6 +49,12 @@ classdef DrumFeeder < StateObject
         function updateState(this)
             if this.getState ~= this.OFFLINE
                 
+            end
+        end
+        
+        function onStateChange(this)
+            if ~this.isReady()
+                this.stop();
             end
         end
     end

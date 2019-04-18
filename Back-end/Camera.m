@@ -56,7 +56,7 @@ classdef Camera < StateObject
             this.light.init('LPT1');
             this.light.changeLighting(0);
             
-            this.setStateOnline('Initialisiert');
+            this.setStateInactive('Initialisiert');
         end
         
         % Verbindung �ber TCPIP aufbauen
@@ -115,14 +115,20 @@ classdef Camera < StateObject
             imshow(this.imgRGB);
             figure(2)
             imshow(this.imgUV);
-            this.setStateOnline('Betriebsbereit');
+            this.setStateInactive('Betriebsbereit');
         end
         
         function updateState(this)
            if this.getState ~= this.OFFLINE
                 
-            end 
+           end 
         end 
+        
+        function onStateChange(this)
+            if ~this.isReady()
+
+            end
+        end
     end
 end
 

@@ -27,9 +27,14 @@ classdef Process < StateObject
             this.measSystem.init(this.cANbus)
             this.isoDevice.init(this.cANbus)
             
-            this.setStateOnline('Initialisiert');
+            this.setStateInactive('Initialisiert');
             % Da Process die Top-Level Klasse ist wird hier auch auf dem INFO Level geloggt
             this.logger.info('Prozessinitialisierung abgeschlossen'); 
+            try
+                loadSettings();
+            catch
+                this.logger.warning('"Einstellungen laden" fehlgeschlagen, verwende Standarteinstellungen'); 
+            end
         end
         
         function run(this, num_iterations)
@@ -41,22 +46,32 @@ classdef Process < StateObject
                 this.setStateActive('Objekt Isolieren');
                 [success, error] = this.isoDevice.isolateObject();      % Versuche ein Objekt dem Messsystem zuzuf�hren
                 if (success)                                            % Falls das geklappt hat   
-                    this.setStateActive('Objekt Messen');
-                    [success, error] = this.measSystem.measure();       % Versuche die Messung durchzuf�hren    
-                    if (~success)                                       % Falls das nicht geklappt hat
-                        this.logger.warning('Fehler bei der Messung');   % gibt eine Fehlermeldung aus
-                    end
-                else                                                    % Falls die Zuf�hrung nicht geklappt hat
-                    this.logger.warning('Fehler bei der Vereinzelung');  % gibt eine Fehlermeldung aus    
+                    this.measSystem.startConvBelt
+                        pause(2)
+                    this.measSystem.stopConvBelt
+%                     this.setStateActive('Objekt Messen');
+%                     [success, error] = this.measSystem.measure();       % Versuche die Messung durchzuf�hren    
+%                     if (~success)                                       % Falls das nicht geklappt hat
+%                         this.logger.warning('Fehler bei der Messung');   % gibt eine Fehlermeldung aus
+%                     end
+%                 else                                                    % Falls die Zuf�hrung nicht geklappt hat
+%                     this.logger.warning('Fehler bei der Vereinzelung');  % gibt eine Fehlermeldung aus    
                 end
+                this.logger.info(['Iteration ', num2str(i) ,' abgeschlossen']);
             end
-            this.logger.info(['Iteration ', num2str(i) ,' abgeschlossen']);
-            this.setStateOnline('Betriebsbereit');
+            this.logger.info(['Prozess abgeschlossen']);
+            this.setStateInactive('Betriebsbereit');
         end
         
         function updateState(this)
             if this.getState ~= this.OFFLINE
                 
+            end
+        end
+        
+        function onStateChange(this)
+            if ~this.isReady()
+
             end
         end
     end

@@ -27,11 +27,13 @@ classdef CANbus < StateObject
                 this.startChannel();
             end
             
-            this.setStateOnline('Initialisiert');
+            this.setStateInactive('Initialisiert');
         end
         % Destruktor
         function delete(this)
-            this.stopChannel();
+            try
+                this.stopChannel();
+            end
         end
         % Kanal starten
         function startChannel(this)
@@ -58,7 +60,7 @@ classdef CANbus < StateObject
                 this.setStateError('Fehler beim Senden der CAN-Nachricht');
                 rethrow(ME)
             end
-%             this.setStateOnline('Betriebsbereit');
+%             this.setStateInactive('Betriebsbereit');
         end
         % Nachricht empfangen
         function receiveMsg(this,ch)
@@ -71,7 +73,7 @@ classdef CANbus < StateObject
                 msg_2 = msg(2);
                 analyseData(this,msg_2);
             end
-%             this.setStateOnline('Betriebsbereit');
+%             this.setStateInactive('Betriebsbereit');
         end
 
         function analyseData(this,msg)
@@ -131,6 +133,12 @@ classdef CANbus < StateObject
         function updateState(this)
             if this.getState ~= this.OFFLINE
                 
+            end
+        end
+        
+        function onStateChange(this)
+            if ~this.isReady()
+
             end
         end
     end

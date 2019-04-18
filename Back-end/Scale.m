@@ -21,7 +21,7 @@ classdef Scale < StateObject
             this.cANbus = cANbus;
             this.connect();
             
-            this.setStateOnline('Initialisiert');
+            this.setStateInactive('Initialisiert');
         end
         % Verbindung zur Waage herstellen
         function connect(this)
@@ -88,13 +88,19 @@ classdef Scale < StateObject
                 end
                 
             end
-            this.setStateOnline('Betriebsbereit');
+            this.setStateInactive('Betriebsbereit');
         end
         
         function updateState(this)
            if this.getState ~= this.OFFLINE
                 
             end 
+        end
+        
+        function onStateChange(this)
+            if ~this.isReady()
+
+            end
         end
     end
     

@@ -1,0 +1,6 @@
+Alle Klassen müssen die Methode updateState implementieren, um einen überprüfbaren Zustand zu haben.
+Alle Klassen müssen die Methode onStateChange implementieren, um auf Zustandsänderungen reagieren zu können.
+
+alle Objektmethoden die physische Aktionen zur konsequenz haben, müssen die Zeile
+if ~this.isReady(); return; end
+am Methodenanfangen haben um 

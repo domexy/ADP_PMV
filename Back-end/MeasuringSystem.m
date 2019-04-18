@@ -34,12 +34,12 @@ classdef MeasuringSystem < StateObject
             
             this.scale.init('COM1', cANbus);
             this.weighingBelt.init(cANbus);
-            this.light.init('LPT1');
+%             this.light.init('LPT1');
             this.cam.init();
             
             this.listenerStart = addlistener(this.cANbus,'StartMeasurement',@this.startConvBelt);
             
-            this.setStateOnline('Initialisiert');
+            this.setStateInactive('Initialisiert');
         end
         
         function [success, error] = measure(this)
@@ -51,7 +51,7 @@ classdef MeasuringSystem < StateObject
 
             this.scale.awaitMass();
 %             this.scale.zero();
-            this.setStateOnline('Messung beendet');
+            this.setStateInactive('Messung beendet');
         end
         
         function startConvBelt(this,~,~)
@@ -63,18 +63,24 @@ classdef MeasuringSystem < StateObject
         end
         
         function simulateCamera(this)
-            this.light.changeLighting(16);
+%             this.light.changeLighting(16);
             % Kurze Pause zum Einstellen
             pause(2);
-            this.light.changeLighting(1);
+%             this.light.changeLighting(1);
             pause(2);
-            this.light.changeLighting(0);
+%             this.light.changeLighting(0);
             
         end
         
         function updateState(this)
             if this.getState ~= this.OFFLINE
                 
+            end
+        end
+        
+        function onStateChange(this)
+            if ~this.isReady()
+
             end
         end
      end

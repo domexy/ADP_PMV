@@ -40,7 +40,7 @@ classdef CameraServer < StateObject
             fopen(this.tcpip);
             this.logger.debug('Verbindung aufgebaut');
             
-            this.setStateOnline('Initialisiert');
+            this.setStateInactive('Initialisiert');
         end
         
         % Foto aufnehmen und in .mat-Datei speichern
@@ -58,6 +58,12 @@ classdef CameraServer < StateObject
         function updateState(this)
             if this.getState ~= this.OFFLINE
                 
+            end
+        end
+        
+        function onStateChange(this)
+            if ~this.isReady()
+
             end
         end
     end

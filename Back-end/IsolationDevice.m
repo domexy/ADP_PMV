@@ -28,7 +28,7 @@ classdef IsolationDevice < StateObject
             this.robot.init(cANbus, this.mega);
             this.drumFeeder.init(cANbus, this.mega);
             
-            this.setStateOnline('Initialisiert');
+            this.setStateInactive('Initialisiert');
         end
         
         
@@ -75,6 +75,12 @@ classdef IsolationDevice < StateObject
         function updateState(this)
             if this.getState ~= this.OFFLINE
                 
+            end
+        end
+        
+        function onStateChange(this)
+            if ~this.isReady()
+
             end
         end
     end

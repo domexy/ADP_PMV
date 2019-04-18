@@ -3,7 +3,7 @@ classdef ObjectDetection < StateObject
         cam
         cam2
         frame
-        roi
+        roi = [58 429 307 194];
         roiMask
         imgSize
     end
@@ -22,29 +22,26 @@ classdef ObjectDetection < StateObject
             this.cam.FocusMode = 'manual';
             this.cam.Focus = 0;
             this.cam.ExposureMode = 'manual';
-            preview(this.cam);
-%             this.cam2 = webcam('Logitech HD Webcam C270');
-%             preview(this.cam2);
 
-            this.roi = [58 429 307 194];
+
             this.imgSize = [480 640];
             this.roiMask = createRoiMask(this);
             this.autoExposure();
             
-            this.setStateOnline('Initialisiert');
+            this.setStateInactive('Initialisiert');
         end
         
         function autoExposure(this)
+            this.setStateActive('Belichtungszeit einstellen...');
             for i=-9:-2
                 this.cam.Exposure = i;
                 pause(0.5)
                 if this.objectOnTable == true
                     this.cam.Exposure = i-2;
                     break;
-                end
-                
+                end                
             end
-                
+            this.setStateInactive(['Belichtungszeit auf ', num2str(this.cam.Exposure), ' gesetzt']);                
         end
         
         % Foto mit Webcam aufnehmen und bearbeiten
@@ -65,7 +62,7 @@ classdef ObjectDetection < StateObject
             frame5 = logical(imfill(frame4,'holes'));
             
             pic = frame5;
-            this.setStateOnline('Foto aufnehmen beendet');
+            this.setStateInactive('Foto aufnehmen beendet');
         end
         
         % Maske f�r Region of Interest erstellen
@@ -95,7 +92,7 @@ classdef ObjectDetection < StateObject
             else
                 this.logger.warning('Kein Objekt auf dem Tisch');
             end
-            this.setStateOnline('Betriebsbereit');
+            this.setStateInactive('Betriebsbereit');
         end
         
         % Objekt lokalisieren
@@ -185,6 +182,12 @@ classdef ObjectDetection < StateObject
         function updateState(this)
             if this.getState ~= this.OFFLINE
                 
+            end
+        end
+        
+        function onStateChange(this)
+            if ~this.isReady()
+
             end
         end
     end

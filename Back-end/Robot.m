@@ -6,7 +6,7 @@ classdef Robot < StateObject
         speed = 0.2;
         cANbus;
         gripper;
-        
+        roa = [58 429 307 194]; %Region of Access = Greifbereich
     end
     
     methods
@@ -36,7 +36,7 @@ classdef Robot < StateObject
             
             this.home();
             
-            this.setStateOnline('Initialisiert');
+            this.setStateInactive('Initialisiert');
         end
         
         % Funktion zum Auslesen der aktuellen Roboter-Pose
@@ -84,6 +84,8 @@ classdef Robot < StateObject
         
         % Funktion zum Bewegen des Roboters
         function move(this,pose,orientation)
+            if ~this.isReady; return; end
+            
             if nargin == 1
                 this.logger.warning('Zu wenige Eingabeparameter');
                 error('error; not enough input arguments')
@@ -97,7 +99,7 @@ classdef Robot < StateObject
                 this.logger.warning('Ungültige Y-Position');
                 error('error; invalid Y-Position')
             end
-            this.setStateActive('Verarbeite...');
+            
             % Informationen zur Roboter-Pose ins richtige Format bringen
             P(1:3) = P(1:3) * 0.001;            % von mm zu m
             P(4:6) = P(4:6) * 2*3.1415/360;     % von � zu rad
@@ -134,7 +136,7 @@ classdef Robot < StateObject
                 pose2 = this.readPose();    % Nochmal Position auslesen
                     this.changeStateActive('Verfahre...');
                 if(isequal(pose1,pose2))    % Falls die beiden Positionen gleich sind...
-                    this.setStateOnline('Pose erreicht');
+                    this.setStateInactive('Pose erreicht');
                     break;                  % ...abbrechen, weil Endposition erreicht wurde
                 end
             end
@@ -145,7 +147,7 @@ classdef Robot < StateObject
             this.logger.info('Kehre nach Home zurück');
             this.move(this.homePose);
             this.gripper.open();
-            this.setStateOnline('In Home-Pose');
+            this.setStateInactive('In Home-Pose');
         end
         
         % Objekttische abkehren und damit von Objekten befreien
@@ -165,7 +167,7 @@ classdef Robot < StateObject
                 curWP = wp{k};
                 this.move(curWP);
             end
-            this.setStateOnline('Wischen abgeschlossen');
+            this.setStateInactive('Wischen abgeschlossen');
             % Fahre Roboter zur�ck in die Home-Position
             this.home();
         end
@@ -186,13 +188,13 @@ classdef Robot < StateObject
                     this.logger.warning('Vakuum-Greifer war nicht erfolgreich');
                     % Objekt mit mech. Greifer anheben
                     if(~this.liftObjectGripper(xObj, yObj)) % Falls Objekt mit mech. Greifer nicht angehoben werden kann
-                        this.sweep();                     % kehre Objekttisch ab
+%                         this.sweep();                     % kehre Objekttisch ab
                         success = 0;
                     else
                         this.logger.warning('Objekt mit Greifer gegriffen');
                         % Objekt mit Greifer transportieren
                         if (~this.moveObjectGripper())  % Falls Objekt nicht transportiert werden konnte
-                            this.sweep();               % kehre Objekttisch ab
+%                             this.sweep();               % kehre Objekttisch ab
                             success = 0;
                         else
                             this.returnHome();          % Fahre Roboter zur�ck in die Home-Position
@@ -202,7 +204,7 @@ classdef Robot < StateObject
                 else
                     % Objekt mit Vakuum transportieren
                     if (~this.moveObject())         % Falls Objekt nicht transportiert werden konnte
-                        this.sweep();               % kehre Objekttisch ab
+%                         this.sweep();               % kehre Objekttisch ab
                         success = 0;
                     else
                         this.returnHome();          % Fahre Roboter zur�ck in die Home-Position
@@ -269,7 +271,7 @@ classdef Robot < StateObject
             this.move(liftPosition);            % 5 cm �ber das Objekt fahren
             
             % Versuche 3x das Objekt zu heben
-            for i = 1:3      
+            for i = 1:1     
                 this.move(objPosition);         % Fahre Sauger auf Objekt
                 this.switchVacuum(1);           % Schalte Vakuum ein
                 this.move(liftPosition);        % Hebe Objekt hoch
@@ -283,7 +285,7 @@ classdef Robot < StateObject
                     this.logger.warning('Unterdruck-Anheben fehlgeschlagen');
                 end
             end
-            this.setStateOnline('Objekt angehoben');
+            this.setStateInactive('Objekt angehoben');
         end
         
         % Fahre Objekt in Anlage
@@ -324,9 +326,9 @@ classdef Robot < StateObject
                 this.cANbus.sendMsg(517,1);
                 pause(1)
                 this.switchVacuum(0);           % Vakuum zum Ablegen ausschalten
-                pause(3)
+                pause(1)
                 this.cANbus.sendMsg(517,0);
-                this.setStateOnline('Objekt abgelegt');
+                this.setStateInactive('Objekt abgelegt');
             end
         end
         
@@ -339,7 +341,7 @@ classdef Robot < StateObject
                 wp = [90 -332 644 -177 -29 0];
                 this.move(wp);
             end
-            this.setStateOnline('Rampe verlassen...')
+            this.setStateInactive('Rampe verlassen...')
             
             if isequal(round(this.readPose()), [400 94 760 -17 177 0])
                 wp = [90 -332 644 -177 -29 0];      
@@ -376,7 +378,7 @@ classdef Robot < StateObject
             
             this.gripper.open();
             this.move(objPosition);
-            pause(5)% 5 cm �ber das Objekt fahren
+            pause(1)% 5 cm �ber das Objekt fahren
             this.gripper.close();
             pause(0.5);
             this.move(liftPosition);
@@ -428,15 +430,15 @@ classdef Robot < StateObject
             if (locSuccess)           % Falls ein Objekt lokalisiert wurde
                 % Objekt anheben
                 if (~this.liftObjectGripper(xObj, yObj))     % Falls Objekt nicht angehoben werden kann
-                    this.sweep();                     % kehre Objekttisch ab
+%                     this.sweep();                     % kehre Objekttisch ab
                     success = 0;
                 else
                     % Objekt transportieren
                     if (~this.moveObjectGripper())         % Falls Objekt nicht transportiert werden konnte
-                        this.sweep();               % kehre Objekttisch ab
+%                         this.sweep();               % kehre Objekttisch ab
                         success = 0;
                     else
-                        this.setStateOnline('Objekt mit Greifer zugeführt');
+                        this.setStateInactive('Objekt mit Greifer zugeführt');
                         this.returnHome();          % Fahre Roboter zur�ck in die Home-Position
                     end
                 end
@@ -453,6 +455,12 @@ classdef Robot < StateObject
            if this.getState ~= this.OFFLINE
                 
             end 
+        end
+        
+        function onStateChange(this)
+            if ~this.isReady()
+
+            end
         end
     end
     
