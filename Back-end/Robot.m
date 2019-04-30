@@ -2,12 +2,22 @@ classdef Robot < StateObject
     properties
         ur5
         objDetection
-        homePose = [26 -290 447 180 0 0];
-        speed = 0.2;
         cANbus;
         gripper;
+        homePose = [26 -290 447 180 0 0];
         roa = [58 429 307 194]; %Region of Access = Greifbereich
+    end
+    
+    properties(SetAccess = private, SetObservable)
         pause_length = 0.125;
+        speed = 0.2;
+        x = 0;
+        y = 0;
+        z = 0;
+        rx = 0;
+        ry = 0;
+        rz = 0;
+        vacuum_active = false;
     end
     
     methods
@@ -88,6 +98,13 @@ classdef Robot < StateObject
             end
             P(1:3) = P(1:3)*1000;           % converting to mm
             P(4:6) = P(4:6)*360/2/3.1415;   % converting to �
+            
+            this.x = P(1);
+            this.y = P(2);
+            this.z = P(3);
+            this.x = P(4);
+            this.ry = P(5);
+            this.rz = P(6);
         end
         
         % Roboter-Nachricht lesen
@@ -261,16 +278,26 @@ classdef Robot < StateObject
             switch status
                 case 1
                     % Vakuumpumpe einschalten
-                    this.cANbus.sendMsg(515,1);
-                    this.logger.info('Unterdruck aktiviert');
+                    this.activateVacuum()
                 case 0
                     % Vakuumpumpe ausschalten
-                    this.cANbus.sendMsg(515,0);
-                    this.logger.info('Unterdruck deaktiviert');
+                    this.deactivateVacuum()
                 otherwise
                     % Fehlerbehandlung
                     this.logger.error('Fehler beim Schalten des Vakuums');
             end
+        end
+        
+        function activateVacuum(this)
+            this.cANbus.sendMsg(515,1);
+            this.logger.info('Unterdruck aktiviert');
+            this.vacuum_active = 1;
+        end
+        
+        function deactivateVacuum(this)
+            this.cANbus.sendMsg(515,0);
+            this.logger.info('Unterdruck deaktiviert');
+            this.vacuum_active = 0;
         end
         
         % Versuche Objekt zu heben
@@ -279,6 +306,8 @@ classdef Robot < StateObject
         %               status = 0, wenn Objekt nicht gehoben werden konnte
         function status = liftObject(this, xObj, yObj)
             this.setStateActive('Hebe Objekt...');
+            
+
             objPosition = [yObj xObj 57 180 0 0];
             liftPosition = [yObj xObj 107 180 0 0];
             
@@ -464,6 +493,30 @@ classdef Robot < StateObject
                 success = 0;
             end
             
+        end
+        
+        function x = get.x(this)
+            x = this.x;
+        end
+        
+        function y = get.y(this)
+            y = this.y;
+        end
+        
+        function z = get.z(this)
+            z = this.z;
+        end
+        
+        function rx = get.rx(this)
+            rx = this.rx;
+        end
+        
+        function ry = get.ry(this)
+            ry = this.ry;
+        end
+        
+        function rz = get.rz(this)
+            rz = this.rz;
         end
         
         function updateState(this)

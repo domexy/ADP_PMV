@@ -2,7 +2,6 @@ classdef MeasuringSystem < StateObject
     properties
         cANbus;
         mega;
-        status;
         cam;
         scale;
         paperObject;
@@ -10,11 +9,14 @@ classdef MeasuringSystem < StateObject
         listenerStart;
         light;
         servoVorhang;
-        
-        imgCol
-        imgUV
-        data
-        mass
+    end
+    
+    properties(SetAccess = private, SetObservable)
+        gate_position
+    end
+    
+    properties (Dependent, SetObservable)
+        gate_open
     end
     
      methods
@@ -41,14 +43,14 @@ classdef MeasuringSystem < StateObject
             this.cam.init();
             
             this.listenerStart = addlistener(this.cANbus,'StartMeasurement',@this.startConvBelt);
-            this.openCell();
+            this.openGate();
             this.setStateInactive('Initialisiert');
         end
         
         function [success, error] = measure(this)
             success = 1;
             error = 0;
-            this.closeCell();
+            this.closeGate();
             this.setStateActive('Messung gestartet');
             this.cam.takePhotos();
 %             this.simulateCamera();
@@ -56,7 +58,7 @@ classdef MeasuringSystem < StateObject
             this.scale.awaitMass();
 %             this.scale.zero();
             this.setStateInactive('Messung beendet');
-            this.openCell();
+            this.openGate();
         end
         
         function startConvBelt(this,~,~)
@@ -67,24 +69,26 @@ classdef MeasuringSystem < StateObject
             this.weighingBelt.stop();
         end
         
-        function openCell(this)
-            writePosition(this.servoVorhang,1)
+        function moveGate(this, position)
+            writePosition(this.servoVorhang,position)
+            this.gate_position = position;
+            this.logger.debug(['Messzellentor Position: ', num2str(position)])
         end
         
-        function closeCell(this)
-            writePosition(this.servoVorhang,0)
+        function openGate(this)
+            this.moveGate(1)
+            this.logger.info('Messzellentor geöffnet')
         end
         
-        function simulateCamera(this)
-%             this.light.changeLighting(16);
-            % Kurze Pause zum Einstellen
-            pause(2);
-%             this.light.changeLighting(1);
-            pause(2);
-%             this.light.changeLighting(0);
-            
+        function closeGate(this)
+            this.moveGate(0)
+            this.logger.info('Messzellentor geschlossen')
         end
         
+        function gate_open = get.gate_open(this)
+            gate_open = this.gate_position > 0.75;
+        end
+                
         function updateState(this)
             try
                 if this.getState() ~= this.OFFLINE

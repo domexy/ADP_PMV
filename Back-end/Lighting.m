@@ -1,7 +1,14 @@
 classdef Lighting < StateObject
     properties
-        lpt
-        current_bitcode = '000000'
+        lpt = 'LPT1';
+    end
+    
+    properties(SetAccess = private, SetObservable)
+        white = false;
+        blue = false;
+        green = false;
+        red = false;
+        uv = false;
     end
     
     methods
@@ -14,28 +21,66 @@ classdef Lighting < StateObject
         end
         
         function init(this,lpt)
-            if nargin == 1
-                lpt = 'LPT1';
-            end
             this.lpt = lpt;
             
             this.setStateInactive('Initialisiert');
         end
-        % Beleuchtung einstellen
-        function changeLighting(this, byte)
-            if byte == 0
-                this.setStateInactive('Licht Aus');
-            else
-                this.setStateActive(['Licht-Bitcode = ' dec2bin(byte)]);
+        
+        function delete(this)
+            try
+                this.setLightOff();
+            catch
+                disp('failed to turn of light')
             end
-            % akuteller Zustand abfragbar machen über current_bitcode
-            bitcode = dec2bin(byte,5);
-            this.current_bitcode = bitcode(end-4:end);
-            % using java.io.FileOutputStream and java.io.PrintStream
+        end
+        
+        function setLight(this,w,b,g,r,uv)
+%             disp([w,b,g,r,uv])
+            this.white = w;
+            this.blue = b;
+            this.green = g;
+            this.red = r;
+            this.uv = uv;
+            byte = int32(double(w)*16 + double(b)*8 + double(g)*4 + double(r)*2 + double(uv));
+            
             os = java.io.FileOutputStream(this.lpt); % open stream to LPT1 
+            disp('->')
+            disp(os)
             ps = java.io.PrintStream(os); % define PrintStream
             ps.write(byte); % write into buffer 
-            ps.close % flush buffer and close stream
+            ps.close
+            
+            this.setStateActive(['LichtCode: ', dec2bin(byte,5)]);
+        end
+        
+        function setLightWhite(this)
+            this.setLight(1,0,0,0,0);
+            this.logger.info('Weiß-Licht');
+        end
+        
+        function setLightBlue(this)
+            this.setLight(0,1,0,0,0);
+            this.logger.info('Blau-Licht');
+        end
+        
+        function setLightGreen(this)
+            this.setLight(0,0,1,0,0);
+            this.logger.info('Grün-Licht');
+        end
+        
+        function setLightRed(this)
+            this.setLight(0,0,0,1,0);
+            this.logger.info('Rot-Licht');
+        end
+        
+        function setLightUV(this)
+            this.setLight(0,0,0,0,1);
+            this.logger.info('UV-Licht');
+        end
+        
+        function setLightOff(this)
+            this.setLight(0,0,0,0,0);
+            this.logger.info('Licht Aus');
         end
         
         function updateState(this)

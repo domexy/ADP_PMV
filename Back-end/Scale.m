@@ -2,9 +2,11 @@ classdef Scale < StateObject
     properties
         serialPort;
         portID = '';    % z.B. COM7
-        mass;
-        paperObject;
         cANbus;
+    end
+    
+    properties(SetAccess = private, SetObservable)
+        mass
     end
     
     methods
@@ -60,6 +62,7 @@ classdef Scale < StateObject
         % Tara-Funktion der Waage
         function zero(this)
             this.cANbus.sendMsg(516,1);
+            this.mass = 0;
             this.logger.info('Waage genullt');
         end
         
@@ -85,7 +88,8 @@ classdef Scale < StateObject
                 pause(0.1);
                 if (this.serialPort.BytesAvailable >= 15)
                     [mass,count,msg] = fscanf(this.serialPort,'\002%f g  \003');
-                    this.logger.info('Waage misst: TODO [g]');
+                    this.mass = mass;
+                    this.logger.info(['Waage misst: ',num2str(mass),' [g]']);
                     break;
                 elseif (toc(timer) > 10)
                     this.logger.warning('Mass nach 10 Sec. noch nicht da');

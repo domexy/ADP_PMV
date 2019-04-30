@@ -1,4 +1,4 @@
-classdef PropertyBinding < handle  
+classdef PropertyBinding < Binding.Binding    
     properties(Access = private)
         source_object
         source_prop_name
@@ -21,7 +21,7 @@ classdef PropertyBinding < handle
                 this.target_prop_name = [this.target_prop_name, varargin(2:2:end)];
             end
             
-            this.listener = addlistener(source_object,source_prop_name,'PostSet', @this.eval);
+            this.listener = addlistener(source_object,source_prop_name,'PostSet', @this.tryEval);
         end
         
         function eval(this)

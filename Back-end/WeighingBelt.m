@@ -1,7 +1,10 @@
 classdef WeighingBelt < StateObject
     properties
         cANbus;
-        status;
+    end
+    
+    properties(SetAccess = private, SetObservable)
+        is_active = 0;
     end
     
     methods
@@ -27,14 +30,14 @@ classdef WeighingBelt < StateObject
         % F�rderband starten
         function start(this)
             this.cANbus.sendMsg(517, 1);
-            this.status = 1;
+            this.is_active = 1;
             this.setStateActive('Gestartet...');
         end
         % F�rderband stoppen
         function stop(this)
             this.cANbus.sendMsg(517, 0);
-            this.status = 0;
-            this.setStateActive('Gestoppt');
+            this.is_active = 0;
+            this.setStateInactive('Gestoppt');
         end
         
         function updateState(this)

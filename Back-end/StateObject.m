@@ -3,15 +3,14 @@ classdef StateObject < handle
     %   Detailed explanation goes here
     properties
         logger;
-        components = struct();
     end
     
-    properties (Access = private)
-        state;
-        state_description;
+    properties (SetAccess = private, SetObservable)
+        state = 1;
+        state_description = '';
     end
     
-    properties (Constant)
+    properties (Constant, Hidden)
         OFFLINE = 1;    % Objekt ist Matlabseitig initialisiert, hat jedoch noch keine Verbindung zum physischen Objekt
         INACTIVE = 2;   % Objekt ist Einsatzbereit und hat keinen Auftrag
         ACTIVE = 3;     % Objekt führt einen Auftrag aus
@@ -189,9 +188,14 @@ classdef StateObject < handle
             state_change_message = [...
                 this.STATE_STRINGS{this.state}, '(', this.state_description,')'...
                 ' -> ', this.STATE_STRINGS{state}, '(', state_description,')'];
-            this.state = state;
             this.onStateChange();
             this.state_description = state_description;
+            % state erst nach state_description, da event_listeners direkt
+            % auf state achten aber nur indirekt (via state) auf
+            % state_description zugreifen. 
+            % Sonst ist beim event_listener zugriff noch die alte
+            % state_description gesetzt.
+            this.state = state;
             this.logger.debug(state_change_message);
         end
     end

@@ -2,10 +2,13 @@ classdef ObjectDetection < StateObject
     properties
         cam
         cam2
-        frame
         roi = [58 429 307 194];
         roiMask
         imgSize
+    end
+    
+    properties(SetAccess = private, SetObservable)
+        frame
     end
     
     methods

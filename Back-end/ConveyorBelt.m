@@ -6,6 +6,11 @@ classdef ConveyorBelt < StateObject
         status;
     end
     
+    properties(SetAccess = private, SetObservable)
+        is_active;
+        light_barrier_active;
+    end
+    
     methods
         % Konstruktor
         function this = ConveyorBelt(logger)
@@ -30,13 +35,13 @@ classdef ConveyorBelt < StateObject
         % F�rderband starten
         function start(this)
             this.cANbus.sendMsg(512, 1);
-            this.status = 1;
+            this.is_active = 1;
             this.setStateActive('Gestartet');
         end
         % F�rderband stoppen
         function stop(this)
             this.cANbus.sendMsg(512, 0);
-            this.status = 0;
+            this.is_active = 0;
             this.setStateInactive('Gestoppt');
         end
         
@@ -58,6 +63,7 @@ classdef ConveyorBelt < StateObject
         
         function status = lightBarrierActivated(this)
            status = this.cANbus.statusLightBarrier1();
+           this.light_barrier_active = status;
         end
 
         function updateState(this)

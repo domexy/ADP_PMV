@@ -1,4 +1,4 @@
-classdef StateLampBinding < GuiBinding.GuiBinding
+classdef StateLampBinding < Binding.Binding
     properties (Constant, Access=private)
         lamp_colors = struct(...
                         'OFFLINE', [0.65,0.65,0.65],...
@@ -28,7 +28,7 @@ classdef StateLampBinding < GuiBinding.GuiBinding
                 this.lamp = [this.lamp, varargin(1:2:end)];
                 this.editfield = [this.editfield, varargin(2:2:end)];
             end
-            this.listener = addlistener(state_object,'State','PostSet', @this.eval);
+            this.listener = addlistener(state_object,'state','PostSet', @this.tryEval);
         end
         
         function eval(this)

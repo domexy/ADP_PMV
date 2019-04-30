@@ -6,6 +6,7 @@ classdef Process < StateObject
         isoDevice;      % Vereinzelungsanlage inkl. F�rderband, Objekterkennung und Roboter
         measSystem;     % Messystem inkl. R�derband, Waage und Kamera
         cANbus;
+        mega;
     end
     
     properties (SetObservable)
@@ -19,17 +20,17 @@ classdef Process < StateObject
                 logger = [];
             end
             this = this@StateObject(logger);
-            this.mega = createMega();
             this.cANbus = CANbus(this.logger);
-            this.measSystem = MeasuringSystem(this.logger,mega);
-            this.isoDevice = IsolationDevice(this.logger,mega);
+            this.measSystem = MeasuringSystem(this.logger);
+            this.isoDevice = IsolationDevice(this.logger);
         end
         
         function init(this)
             % Baut Verbindung zum Prozess selbst auf
+            this.mega = createMega();
             this.cANbus.init()
-            this.measSystem.init(this.cANbus)
-            this.isoDevice.init(this.cANbus)
+            this.measSystem.init(this.cANbus,this.mega)
+            this.isoDevice.init(this.cANbus,this.mega)
             
             this.setStateInactive('Initialisiert');
             % Da Process die Top-Level Klasse ist wird hier auch auf dem INFO Level geloggt
