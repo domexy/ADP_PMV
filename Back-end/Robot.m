@@ -7,6 +7,7 @@ classdef Robot < StateObject
         cANbus;
         gripper;
         roa = [58 429 307 194]; %Region of Access = Greifbereich
+        pause_length = 0.125;
     end
     
     methods
@@ -22,21 +23,33 @@ classdef Robot < StateObject
         end
         
         function init(this,cANbus, mega)
-            Robot_IP = '192.168.42.5';
-            this.ur5 = tcpip(Robot_IP,30000,'NetworkRole','server');
-            fclose(this.ur5);
-            this.logger.info('"Play" auf Roboter-Display drücken...')
-            fopen(this.ur5);
-            this.logger.info('Roboter Verbunden!');
-            
-            this.cANbus = cANbus;
-            
-            this.objDetection.init();
-            this.gripper.init(mega);
-            
-            this.home();
-            
-            this.setStateInactive('Initialisiert');
+            try
+                if nargin < 3
+                    mega = createMega();
+                end
+                if nargin == 1
+                    cANbus = CANbus();
+                    cANbus.init();
+                end
+                Robot_IP = '192.168.42.5';
+                this.ur5 = tcpip(Robot_IP,30000,'NetworkRole','server');
+                fclose(this.ur5);
+                this.logger.info('"Play" auf Roboter-Display drücken...')
+                fopen(this.ur5);
+                this.logger.info('Roboter Verbunden!');
+                
+                this.cANbus = cANbus;
+                
+                this.objDetection.init();
+                this.gripper.init(mega);
+                
+                this.home();
+                
+                this.setStateInactive('Initialisiert');
+            catch ME
+                this.setStateError('Initialisierung fehlgeschlagen');
+                this.logger.error(ME.message);
+            end
         end
         
         % Funktion zum Auslesen der aktuellen Roboter-Pose
@@ -65,7 +78,7 @@ classdef Robot < StateObject
                         C = [C,rec(Curr_c)];
                     end
                 end
-                P(i) = str2double(C);   
+                P(i) = str2double(C);
             end
             for i = 1 : length(P)
                 if isnan(P(i))
@@ -112,14 +125,14 @@ classdef Robot < StateObject
                 num2str(this.speed),...
                 ')'];
             success = '0';
-
+            
             % Informationen an Roboter senden
             while strcmp(success,'0')
                 fprintf(this.ur5,'(1)');    % task = 1 : moving task
                 pause(0.01);                % Tune this to meet your system
                 fprintf(this.ur5,P_char);
                 while this.ur5.BytesAvailable==0
-            %         disp([this.ur5.BytesAvailable i]);
+                    %         disp([this.ur5.BytesAvailable i]);
                 end
                 success  = this.readMsg();
             end
@@ -134,7 +147,7 @@ classdef Robot < StateObject
                 pose1 = this.readPose();    % Aktuelle Position auslesen
                 pause(0.1);                 % Kurz warten
                 pose2 = this.readPose();    % Nochmal Position auslesen
-                    this.changeStateActive('Verfahre...');
+                this.changeStateActive('Verfahre...');
                 if(isequal(pose1,pose2))    % Falls die beiden Positionen gleich sind...
                     this.setStateInactive('Pose erreicht');
                     break;                  % ...abbrechen, weil Endposition erreicht wurde
@@ -188,23 +201,23 @@ classdef Robot < StateObject
                     this.logger.warning('Vakuum-Greifer war nicht erfolgreich');
                     % Objekt mit mech. Greifer anheben
                     if(~this.liftObjectGripper(xObj, yObj)) % Falls Objekt mit mech. Greifer nicht angehoben werden kann
-%                         this.sweep();                     % kehre Objekttisch ab
+                        this.sweep();                     % kehre Objekttisch ab
                         success = 0;
                     else
                         this.logger.warning('Objekt mit Greifer gegriffen');
                         % Objekt mit Greifer transportieren
                         if (~this.moveObjectGripper())  % Falls Objekt nicht transportiert werden konnte
-%                             this.sweep();               % kehre Objekttisch ab
+                            this.sweep();               % kehre Objekttisch ab
                             success = 0;
                         else
                             this.returnHome();          % Fahre Roboter zur�ck in die Home-Position
-                        end                        
+                        end
                     end
                     
                 else
                     % Objekt mit Vakuum transportieren
                     if (~this.moveObject())         % Falls Objekt nicht transportiert werden konnte
-%                         this.sweep();               % kehre Objekttisch ab
+                        this.sweep();               % kehre Objekttisch ab
                         success = 0;
                     else
                         this.returnHome();          % Fahre Roboter zur�ck in die Home-Position
@@ -213,13 +226,14 @@ classdef Robot < StateObject
                 
                 
             else
+                this.sweep();
                 this.logger.warning('kein Objekt lokalisiert!');
                 success = 0;
             end
             
             
         end
-      
+        
         % Unterdrucksensor �berpr�fen, ob Objekt an Sauger h�ngt
         function status = checkPressureSensor(this)
             % Hier sollte der Drucksensor ausgelesen werden
@@ -230,15 +244,15 @@ classdef Robot < StateObject
                 this.logger.warning('Kein Objekt am Sauger');
             end
         end
- 
-         % Unterdrucksensor �berpr�fen, ob Objekt an Sauger h�ngt
+        
+        % Unterdrucksensor �berpr�fen, ob Objekt an Sauger h�ngt
         function status = checkLightBarrier1(this)
             % Hier sollte der Drucksensor ausgelesen werden
             % 1: Objekt h�ngt am Sauger    0: Objekt h�ngt nicht am Sauger
             status = bitget(this.cANbus.msg_robot,5);
             
-%             status = input('Robot.m --> checkPressureSensor(): ');
-        end       
+            %             status = input('Robot.m --> checkPressureSensor(): ');
+        end
         
         % Vakuumsauger ein- bzw. ausschalten
         function switchVacuum(this, status)
@@ -261,17 +275,17 @@ classdef Robot < StateObject
         
         % Versuche Objekt zu heben
         % Parameter:    x, y des Objekts in Roboter-Koordinaten
-        % R�ckgabe:     status = 1, wenn Objekt gehoben werden konnte, 
+        % R�ckgabe:     status = 1, wenn Objekt gehoben werden konnte,
         %               status = 0, wenn Objekt nicht gehoben werden konnte
         function status = liftObject(this, xObj, yObj)
             this.setStateActive('Hebe Objekt...');
-            objPosition = [yObj xObj 57 180 0 0]; 
-            liftPosition = [yObj xObj 107 180 0 0]; 
+            objPosition = [yObj xObj 57 180 0 0];
+            liftPosition = [yObj xObj 107 180 0 0];
             
             this.move(liftPosition);            % 5 cm �ber das Objekt fahren
             
             % Versuche 3x das Objekt zu heben
-            for i = 1:1     
+            for i = 1:1
                 this.move(objPosition);         % Fahre Sauger auf Objekt
                 this.switchVacuum(1);           % Schalte Vakuum ein
                 this.move(liftPosition);        % Hebe Objekt hoch
@@ -292,20 +306,20 @@ classdef Robot < StateObject
         function success = moveObject(this)
             this.setStateActive('Bewege Objekt...')
             % Wegpunkte f�r Verfahrweg definieren
-%             wp{1} = [91 -332 500 180 0 0];          % Pose: Hochfahren
-%             wp{2} = [175 -425 500 -135 -120 0];     % Pose: Drehen zu Rampe 1
-%             wp{3} = [550 60 500 0 -180 0];          % Pose: Drehen zu Rampe 2
+            %             wp{1} = [91 -332 500 180 0 0];          % Pose: Hochfahren
+            %             wp{2} = [175 -425 500 -135 -120 0];     % Pose: Drehen zu Rampe 1
+            %             wp{3} = [550 60 500 0 -180 0];          % Pose: Drehen zu Rampe 2
             wp{1} = [90 -332 644 -177 -29 0];        % Pose: Hochfahren
             wp{2} = [400 94 760 -17 177 0];          % Pose: Drehen zu Rampe
             wp{3} = [528 41 385 -15  167 0];         % Pose: Einfahren in Rampe
-                    
+            
             % Webpunkte der Reihe nach abfahren
             for k = 1:length(wp)
                 curWP = wp{k};          % aktueller Wegpunkt
                 this.move(curWP);       % zu aktuellem Wegpunkt fahren
                 this.logger.info('Wegpunkt erreicht');
                 if this.checkPressureSensor()   % Falls Objekt noch am Sauger h�ngt
-                    success = 1;                 % Objekt h�ngt noch am Sauger   
+                    success = 1;                 % Objekt h�ngt noch am Sauger
                 else                            % falls Objekt nicht am Sauger h�ngt
                     this.logger.warning('Objekt verloren');
                     this.switchVacuum(0);       % Vakuum ausschalten
@@ -318,15 +332,15 @@ classdef Robot < StateObject
             % Messsystem informieren, dass gleich ein Objekt kommt und der
             % Messprozess gestartet werden kann
             this.startMeasurement();
-%             pause(0.5);
+            %             pause(0.5);
             
             if (success)
                 this.setStateActive('Objekt ablegen...');
                 % Objekt in Anlage ablegen
                 this.cANbus.sendMsg(517,1);
-                pause(1)
+                pause(this.pause_length)
                 this.switchVacuum(0);           % Vakuum zum Ablegen ausschalten
-                pause(1)
+                pause(this.pause_length)
                 this.cANbus.sendMsg(517,0);
                 this.setStateInactive('Objekt abgelegt');
             end
@@ -344,7 +358,7 @@ classdef Robot < StateObject
             this.setStateInactive('Rampe verlassen...')
             
             if isequal(round(this.readPose()), [400 94 760 -17 177 0])
-                wp = [90 -332 644 -177 -29 0];      
+                wp = [90 -332 644 -177 -29 0];
                 this.move(wp);                      % Fahre zur Pose
             end
             
@@ -365,22 +379,22 @@ classdef Robot < StateObject
         function startMeasurement(this)
             
         end
- 
         
         
-   
+        
+        
         
         function status = liftObjectGripper(this, xObj, yObj)
             this.setStateActive('Objekt mit Greifer heben...');
             status = 1;
-            objPosition = [yObj xObj 105 180 0 0]; 
-            liftPosition = [yObj xObj 250 180 0 0]; 
+            objPosition = [yObj xObj 105 180 0 0];
+            liftPosition = [yObj xObj 250 180 0 0];
             
             this.gripper.open();
             this.move(objPosition);
-            pause(1)% 5 cm �ber das Objekt fahren
+            pause(this.pause_length)% 5 cm �ber das Objekt fahren
             this.gripper.close();
-            pause(0.5);
+            pause(this.pause_length);
             this.move(liftPosition);
             this.setStateActive('Objekt mit Greifer gehoben');
         end
@@ -398,8 +412,8 @@ classdef Robot < StateObject
                 curWP = wp{k};          % aktueller Wegpunkt
                 this.move(curWP);       % zu aktuellem Wegpunkt fahren
                 this.logger.info('Wegpunkt erreicht');
-                if ~this.gripper.checkContact()  % Falls Objekt noch am Greifer h�ngt
-                    success = 1;                 % Objekt h�ngt noch am Greifer   
+                if ~this.gripper.checkObject()  % Falls Objekt noch am Greifer h�ngt
+                    success = 1;                 % Objekt h�ngt noch am Greifer
                 else                             % falls Objekt nicht am Greifer h�ngt
                     this.logger.warning('Objekt aus Greifer verloren');
                     success = 0;                 % R�ckmeldung, dass Objekt verloren wurde
@@ -417,7 +431,7 @@ classdef Robot < StateObject
             end
             this.setStateActive('Objekt mit Greifer abgelegt');
         end
-                
+        
         function success = feedObjectGripper(this)
             this.setStateActive('Objekt mit Greifer zuführen...');
             success = 1;
@@ -430,12 +444,12 @@ classdef Robot < StateObject
             if (locSuccess)           % Falls ein Objekt lokalisiert wurde
                 % Objekt anheben
                 if (~this.liftObjectGripper(xObj, yObj))     % Falls Objekt nicht angehoben werden kann
-%                     this.sweep();                     % kehre Objekttisch ab
+                    this.sweep();                     % kehre Objekttisch ab
                     success = 0;
                 else
                     % Objekt transportieren
                     if (~this.moveObjectGripper())         % Falls Objekt nicht transportiert werden konnte
-%                         this.sweep();               % kehre Objekttisch ab
+                        this.sweep();               % kehre Objekttisch ab
                         success = 0;
                     else
                         this.setStateInactive('Objekt mit Greifer zugeführt');
@@ -445,6 +459,7 @@ classdef Robot < StateObject
                 
                 
             else
+                this.sweep();
                 this.logger.warning('kein Objekt lokalisiert!');
                 success = 0;
             end
@@ -452,14 +467,24 @@ classdef Robot < StateObject
         end
         
         function updateState(this)
-           if this.getState ~= this.OFFLINE
-                
-            end 
+            try
+                if this.getState() ~= this.OFFLINE
+                    sub_system_states = [...
+                        this.cANbus.getState(),...
+                        this.objDetection.getState(),...
+                        this.gripper.getState()];
+                    if any(sub_system_states == this.ERROR)
+                        this.changeStateError('Fehler im Subsystem')
+                    end                
+                end
+            catch
+                this.changeStateError('Fehler bei der Zustandsaktualisierung')
+            end
         end
         
         function onStateChange(this)
             if ~this.isReady()
-
+                
             end
         end
     end

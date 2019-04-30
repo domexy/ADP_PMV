@@ -8,6 +8,10 @@ classdef Process < StateObject
         cANbus;
     end
     
+    properties (SetObservable)
+        remaining_iterations
+    end
+    
     methods
         function this = Process(logger)   
             % Erzeugt eine Instanz der Klasse Process
@@ -15,10 +19,10 @@ classdef Process < StateObject
                 logger = [];
             end
             this = this@StateObject(logger);
-            
+            this.mega = createMega();
             this.cANbus = CANbus(this.logger);
-            this.measSystem = MeasuringSystem(this.logger);
-            this.isoDevice = IsolationDevice(this.logger);
+            this.measSystem = MeasuringSystem(this.logger,mega);
+            this.isoDevice = IsolationDevice(this.logger,mega);
         end
         
         function init(this)
@@ -41,7 +45,8 @@ classdef Process < StateObject
             if nargin < 2
                 num_iterations = 1;
             end
-            this.logger.info(['Prozess gestartet fï¿½r ', num2str(num_iterations) ,' Iterationen']);
+            this.remaining_iterations = num_iterations;
+            this.logger.info(['Prozess gestartet für ', num2str(num_iterations) ,' Iterationen']);
             for i=1:num_iterations
                 this.setStateActive('Objekt Isolieren');
                 [success, error] = this.isoDevice.isolateObject();      % Versuche ein Objekt dem Messsystem zuzufï¿½hren
@@ -57,15 +62,26 @@ classdef Process < StateObject
 %                 else                                                    % Falls die Zufï¿½hrung nicht geklappt hat
 %                     this.logger.warning('Fehler bei der Vereinzelung');  % gibt eine Fehlermeldung aus    
                 end
+                this.remaining_iterations = this.remaining_iterations - 1;
                 this.logger.info(['Iteration ', num2str(i) ,' abgeschlossen']);
             end
-            this.logger.info(['Prozess abgeschlossen']);
             this.setStateInactive('Betriebsbereit');
+            this.logger.info(['Prozess abgeschlossen']);
         end
         
         function updateState(this)
-            if this.getState ~= this.OFFLINE
-                
+            try
+                if this.getState() ~= this.OFFLINE
+                    sub_system_states = [...
+                        this.isoDevice.getState(),...
+                        this.measSystem.getState(),...
+                        this.cANbus.getState()];
+                    if any(sub_system_states == this.ERROR)
+                        this.changeStateError('Fehler im Subsystem')
+                    end                
+                end
+            catch
+                this.changeStateError('Fehler bei der Zustandsaktualisierung')
             end
         end
         

@@ -20,15 +20,20 @@ classdef IsolationDevice < StateObject
             this.drumFeeder = DrumFeeder(this.logger);
         end
         
-        function init(this,cANbus)
-            this.cANbus = cANbus;
-            this.mega = arduino('COM7', 'Mega2560', 'Libraries', 'Servo');
-            
-            this.convBelt.init(cANbus);
-            this.robot.init(cANbus, this.mega);
-            this.drumFeeder.init(cANbus, this.mega);
-            
-            this.setStateInactive('Initialisiert');
+        function init(this,cANbus,mega)
+            try
+                this.cANbus = cANbus;
+                this.mega = mega;
+
+                this.convBelt.init(cANbus);
+                this.robot.init(cANbus, this.mega);
+                this.drumFeeder.init(cANbus, this.mega);
+
+                this.setStateInactive('Initialisiert');
+            catch ME
+               this.setStateError('Initialisierung fehlgeschlagen'); 
+               this.logger.error(ME.message);
+            end
         end
         
         
@@ -73,8 +78,19 @@ classdef IsolationDevice < StateObject
         end
         
         function updateState(this)
-            if this.getState ~= this.OFFLINE
-                
+            try
+                if this.getState() ~= this.OFFLINE
+                    sub_system_states = [...
+                        this.cANbus.getState(),...
+                        this.robot.getState(),...
+                        this.convBelt.getState(),...
+                        this.drumFeeder.getState()];
+                    if any(sub_system_states == this.ERROR)
+                        this.changeStateError('Fehler im Subsystem')
+                    end                
+                end
+            catch
+                this.changeStateError('Fehler bei der Zustandsaktualisierung')
             end
         end
         

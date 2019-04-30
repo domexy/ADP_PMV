@@ -18,17 +18,22 @@ classdef ObjectDetection < StateObject
         end
         
         function init(this)
-            this.cam = webcam('C922 Pro Stream Webcam');
-            this.cam.FocusMode = 'manual';
-            this.cam.Focus = 0;
-            this.cam.ExposureMode = 'manual';
+            try
+                this.cam = webcam('C922 Pro Stream Webcam');
+                this.cam.FocusMode = 'manual';
+                this.cam.Focus = 0;
+                this.cam.ExposureMode = 'manual';
 
 
-            this.imgSize = [480 640];
-            this.roiMask = createRoiMask(this);
-            this.autoExposure();
-            
-            this.setStateInactive('Initialisiert');
+                this.imgSize = [480 640];
+                this.roiMask = createRoiMask(this);
+                this.autoExposure();
+
+                this.setStateInactive('Initialisiert');
+            catch ME
+               this.setStateError('Initialisierung fehlgeschlagen'); 
+               this.logger.error(ME.message);
+            end
         end
         
         function autoExposure(this)
@@ -41,7 +46,8 @@ classdef ObjectDetection < StateObject
                     break;
                 end                
             end
-            this.setStateInactive(['Belichtungszeit auf ', num2str(this.cam.Exposure), ' gesetzt']);                
+            this.logger.debug(['Belichtungszeit auf ', num2str(this.cam.Exposure), ' gesetzt'])
+            this.setStateInactive('Betriebsbereit');                
         end
         
         % Foto mit Webcam aufnehmen und bearbeiten

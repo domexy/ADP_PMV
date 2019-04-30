@@ -1,5 +1,5 @@
 classdef Camera < StateObject
-    properties     
+    properties
         tcpip
         debug = 0;
         light;
@@ -21,42 +21,45 @@ classdef Camera < StateObject
         end
         
         function init(this)
-             % Matlab R2014b starten und einen Instant der
-            % Kamera-Server-Klasse in der Variablen s speichern
-            !"C:\Program Files\MATLAB\R2014b\bin\matlab.exe" -r "addpath('Back-end');s = CameraServer([])"
-
-            % TCPIP-Verbindung konfigurieren
-            this.tcpip = tcpip('127.0.0.1', 55000, 'NetworkRole', 'client');
-            
-            % Input-Buffer-Size auf 1 setzen --> es wird nur ein Zeichen
-            % ï¿½bertragen
-            set(this.tcpip, 'InputBufferSize', 1);
-            
-            % Versuche 20x die Verbindung zu Matlab R2014b aufzubauen
-            for i = 1:20
-                this.logger.info('Verbindung zur Kamera wird aufgebaut ...');
-                try
-                    pause(1)                % kurze Pause
-                    this.openClient();      % Verbindung aufbauen
-                    this.logger.info('Verbindung zur Kamera hergestellt');
-                    break;
-                catch
-                    if (mod(i,5) == 1)      % Rï¿½ckmeldung, dass weiter versucht wird, Verbindung aufzubauen
-                        this.logger.warning('Erneuter Verindungsversuch ...');
-                    end
-                    
-                    if i == 20              % Rï¿½ckmeldung, dass Verbindung fehlgeschlagen ist.
-                        this.setStateError('Verbindung zur Kamera fehlgeschlagen!');
-                        return
+            this.setStateError('KAMERA SERVER UNNÖTIG -> KAMERA DIREKT IMPLEMENTIEREN');
+            return
+            try
+                % Matlab R2014b starten und einen Instant der
+                % Kamera-Server-Klasse in der Variablen s speichern
+                !"C:\Program Files\MATLAB\R2014b\bin\matlab.exe" -r "addpath('Back-end');s = CameraServer([])"
+                
+                % TCPIP-Verbindung konfigurieren
+                this.tcpip = tcpip('127.0.0.1', 55000, 'NetworkRole', 'client');
+                
+                % Input-Buffer-Size auf 1 setzen --> es wird nur ein Zeichen
+                % ï¿½bertragen
+                set(this.tcpip, 'InputBufferSize', 1);
+                
+                % Versuche 20x die Verbindung zu Matlab R2014b aufzubauen
+                for i = 1:20
+                    this.logger.info('Verbindung zur Kamera wird aufgebaut ...');
+                    try
+                        pause(1)                % kurze Pause
+                        this.openClient();      % Verbindung aufbauen
+                        this.logger.info('Verbindung zur Kamera hergestellt');
+                        break;
+                    catch                        
+                        if i == 20              % Rï¿½ckmeldung, dass Verbindung fehlgeschlagen ist.
+                            this.setStateError('Verbindung zur Kamera fehlgeschlagen!');
+                            return
+                        end
                     end
                 end
+                
+                % Verbindung zur Beleuchtung herstellen
+                this.light.init('LPT1');
+                this.light.changeLighting(0);
+                
+                this.setStateInactive('Initialisiert');
+            catch ME
+                this.setStateError('Initialisierung fehlgeschlagen');
+                this.logger.error(ME.message);
             end
-            
-            % Verbindung zur Beleuchtung herstellen
-            this.light.init('LPT1');
-            this.light.changeLighting(0);
-            
-            this.setStateInactive('Initialisiert');
         end
         
         % Verbindung ï¿½ber TCPIP aufbauen
@@ -79,7 +82,7 @@ classdef Camera < StateObject
             fwrite(this.tcpip,'1');     % Ein Byte senden, z.B. '1'
             
             % Versuche 5x, das gespeicherte Foto zu laden
-            for i = 1:5     
+            for i = 1:5
                 try
                     pause(1)                        % kurze Pause
                     load('image.mat', 'image');     % Foto laden
@@ -93,7 +96,7 @@ classdef Camera < StateObject
                 end
             end
             
-%             imshow(image);          % Foto anzeigen
+            %             imshow(image);          % Foto anzeigen
             delete('image.mat')     % Foto lï¿½schen
         end
         
@@ -119,14 +122,14 @@ classdef Camera < StateObject
         end
         
         function updateState(this)
-           if this.getState ~= this.OFFLINE
+            if this.getState ~= this.OFFLINE
                 
-           end 
-        end 
+            end
+        end
         
         function onStateChange(this)
             if ~this.isReady()
-
+                
             end
         end
     end

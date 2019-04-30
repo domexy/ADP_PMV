@@ -13,6 +13,7 @@ classdef StateLampBinding < GuiBinding.GuiBinding
         state_object
         lamp
         editfield
+        listener
     end
     
     methods
@@ -27,13 +28,14 @@ classdef StateLampBinding < GuiBinding.GuiBinding
                 this.lamp = [this.lamp, varargin(1:2:end)];
                 this.editfield = [this.editfield, varargin(2:2:end)];
             end
+            this.listener = addlistener(state_object,'State','PostSet', @this.eval);
         end
         
         function eval(this)
             this.state_object.updateState();
             state = this.state_object.getState();
             state_description = this.state_object.getStateDescription();           
-            for i = 1:length(this.target_object)
+            for i = 1:length(this.lamp)
                 this.lamp{i}.Color = this.lamp_colors.(this.state_object.STATE_STRINGS{state});
                 this.editfield{i}.Value = state_description;
             end

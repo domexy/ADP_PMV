@@ -1,6 +1,7 @@
 classdef Lighting < StateObject
     properties
         lpt
+        current_bitcode = '000000'
     end
     
     methods
@@ -13,6 +14,9 @@ classdef Lighting < StateObject
         end
         
         function init(this,lpt)
+            if nargin == 1
+                lpt = 'LPT1';
+            end
             this.lpt = lpt;
             
             this.setStateInactive('Initialisiert');
@@ -22,18 +26,16 @@ classdef Lighting < StateObject
             if byte == 0
                 this.setStateInactive('Licht Aus');
             else
-                this.setStateActive(['Licht-Bytecode = ' num2str(byte)]);
+                this.setStateActive(['Licht-Bitcode = ' dec2bin(byte)]);
             end
+            % akuteller Zustand abfragbar machen über current_bitcode
+            bitcode = dec2bin(byte,5);
+            this.current_bitcode = bitcode(end-4:end);
             % using java.io.FileOutputStream and java.io.PrintStream
-            disp(1)
             os = java.io.FileOutputStream(this.lpt); % open stream to LPT1 
-            disp(2)
             ps = java.io.PrintStream(os); % define PrintStream
-            disp(3)
             ps.write(byte); % write into buffer 
-            disp(4)
             ps.close % flush buffer and close stream
-            disp(5)
         end
         
         function updateState(this)

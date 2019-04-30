@@ -38,9 +38,17 @@ classdef WeighingBelt < StateObject
         end
         
         function updateState(this)
-           if this.getState ~= this.OFFLINE
-                
-            end 
+           try
+                if this.getState() ~= this.OFFLINE
+                    sub_system_states = [...
+                        this.cANbus.getState()];
+                    if any(sub_system_states == this.ERROR)
+                        this.changeStateError('Fehler im Subsystem')
+                    end                
+                end
+            catch
+                this.changeStateError('Fehler bei der Zustandsaktualisierung')
+            end
         end
         
         function onStateChange(this)

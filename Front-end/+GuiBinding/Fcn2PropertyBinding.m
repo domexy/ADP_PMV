@@ -17,6 +17,7 @@ classdef Fcn2PropertyBinding < GuiBinding.GuiBinding
                 this.target_object = [this.target_object, varargin(1:2:end)];
                 this.target_prop_name = [this.target_prop_name, varargin(2:2:end)];
             end
+            this.listener = addlistener(state_object,'State','PostSet', @this.eval);
         end
         
         function eval(this)

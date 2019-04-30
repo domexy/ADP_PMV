@@ -4,6 +4,7 @@ classdef PropertyBinding < handle
         source_prop_name
         target_object
         target_prop_name
+        listener
     end
     
     methods
@@ -19,6 +20,8 @@ classdef PropertyBinding < handle
                 this.target_object = [this.target_object, varargin(1:2:end)];
                 this.target_prop_name = [this.target_prop_name, varargin(2:2:end)];
             end
+            
+            this.listener = addlistener(source_object,source_prop_name,'PostSet', @this.eval);
         end
         
         function eval(this)

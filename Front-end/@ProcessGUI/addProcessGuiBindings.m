@@ -1,11 +1,27 @@
 function addProcessGuiBindings(app)
+            addlistener(app.p,'remaining_iterations','PostSet', @app.setStr);
+
+
+            binding_logger = Logger.Logger();
+            binding_logger.log_file_active = true;
+            binding_logger.log_file_level = 1;
+            binding_logger.log_file_path = 'bindings.log';
+            binding_logger.log_print_active = false;
+%             binding_logger.log_remote_fcn_handle = @app.logToTable;
+%             binding_logger.log_remote_fcn_active = true;
+%             binding_logger.log_remote_fcn_level = 1;
+            
 %% STATELAMP
-            state_lamp_bm = GuiBinding.BindingManager();
+            state_lamp_bm = GuiBinding.BindingManager('State_Lamps',binding_logger);
             app.binding_managers.state_lamps = state_lamp_bm;
+            state_lamp_bm.timer_target_period = 1;
 
             state_lamp_bm.addBinding(...
                 GuiBinding.StateLampBinding(...
                 app.process, app.Process_Lamp, app.Process_EditField));
+            state_lamp_bm.addBinding(...
+                GuiBinding.StateLampBinding(...
+                app.process.cANbus, app.Can_Lamp, app.Can_EditField));
             % ISOLATION DEVICE
             state_lamp_bm.addBinding(...
                 GuiBinding.StateLampBinding(...
@@ -45,19 +61,19 @@ function addProcessGuiBindings(app)
             
             state_lamp_bm.timer.start();
 %% ROBOT GRIPPER TAB
-            robot_gripper_bm = GuiBinding.BindingManager();
+            robot_gripper_bm = GuiBinding.BindingManager('Robot_Gripper',binding_logger);
             app.binding_managers.gripper = robot_gripper_bm;
 %             app.RoboterGreiferTab.binding_managers = [app.RoboterGreiferTab.binding_managers, robot_gripper_bm];
             robot_gripper_bm.timer_target_period = 0.1;
 
             robot_gripper_bm.addBinding(... %Winkel Zange Links
                 GuiBinding.Fcn2PropertyBinding(...
-                @(~,~)app.process.isoDevice.robot.gripper.readAngle1,...
+                @(~,~)app.process.isoDevice.robot.gripper.readAngleDeg1,...
                 app.ZangeLinks_EditField, 'Value',...
                 app.ZangeLinksGauge, 'Value'));
             robot_gripper_bm.addBinding(... %Winkel Zange Rechts
                 GuiBinding.Fcn2PropertyBinding(...
-                @(~,~)app.process.isoDevice.robot.gripper.readAngle2,...
+                @(~,~)app.process.isoDevice.robot.gripper.readAngleDeg2,...
                 app.ZangeRechts_EditField, 'Value',...
                 app.ZangeRechtsGauge, 'Value'));
             robot_gripper_bm.addBinding(... %Zangenkontakt

@@ -17,17 +17,21 @@ classdef CANbus < StateObject
         end
         
         function init(this)
-            this.channel = canChannel('PEAK-System','PCAN_USBBUS1');
-            % Versuche Channel zu starten 
             try
-                this.startChannel();
-            % Ansonsten versuche den Channel zuerst zu schlie�en
-            catch
-                this.stopChannel();
-                this.startChannel();
+                this.channel = canChannel('PEAK-System','PCAN_USBBUS1');
+                % Versuche Channel zu starten 
+                try
+                    this.startChannel();
+                % Ansonsten versuche den Channel zuerst zu schlie�en
+                catch
+                    this.stopChannel();
+                    this.startChannel();
+                end
+                this.setStateInactive('Initialisiert');
+            catch ME
+               this.setStateError('Initialisierung fehlgeschlagen'); 
+               this.logger.error(ME.message);
             end
-            
-            this.setStateInactive('Initialisiert');
         end
         % Destruktor
         function delete(this)
