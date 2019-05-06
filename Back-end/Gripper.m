@@ -70,10 +70,14 @@ classdef Gripper < StateObject
         end
         
         function setAngles(this, angle1, angle2)
+            diff_angle_1 = abs(this.angle_1 - angle1);
+            diff_angle_2 = abs(this.angle_2 - angle2);
             writePosition(this.servo1, angle1 + this.offset);
             writePosition(this.servo2, angle2);
             this.angle_1 = angle1;
             this.angle_2 = angle2;
+            pause(max(diff_angle_1,diff_angle_2)+0.05) % ungefähr die Zeit dies es brauch um den Greifer zu verfahren
+            this.checkContact();
         end
         
         function setAnglesSym(this, angle)
@@ -97,11 +101,7 @@ classdef Gripper < StateObject
         
         function changeOffset(this, offset)
             [a1,a2] = this.readAngles();
-            %             disp([a1,a2])
-            b1 = a1+(0.5-a1)/2;
-            b2 = a2+(0.5-a2)/2;
-            %             disp([b1,b2])
-            %             this.setAngles(b1,b2);
+
             this.open()
             this.offset = offset;
             pause(0.3)
@@ -110,7 +110,7 @@ classdef Gripper < StateObject
         
         % return 1: Greiferarme haben Kontakt,
         % return 0: Greiferarme haben keinen Kontakt
-        function status = checkhas_contact(this)
+        function status = checkContact(this)
             this.mega.configurePin('D9','pullup');
             status = ~this.mega.readDigitalPin('D9');
             this.has_contact = status;
@@ -118,7 +118,7 @@ classdef Gripper < StateObject
         
         function status = checkObject(this)
             this.close();
-            status = checkhas_contact(this);
+            status = checkContact(this);
             if status
                 this.logger.warning('Greifer hat kein Objekt');
             end

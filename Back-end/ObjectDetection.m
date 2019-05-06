@@ -5,6 +5,7 @@ classdef ObjectDetection < StateObject
         roi = [58 429 307 194];
         roiMask
         imgSize
+        small_object_threshold = 3000;
     end
     
     properties(SetAccess = private, SetObservable)
@@ -45,7 +46,7 @@ classdef ObjectDetection < StateObject
                 this.cam.Exposure = i;
                 pause(0.5)
                 if this.objectOnTable == true
-                    this.cam.Exposure = i-2;
+                    this.cam.Exposure = i-1;
                     break;
                 end                
             end
@@ -92,7 +93,7 @@ classdef ObjectDetection < StateObject
             s = regionprops(img, 'Centroid','Area', 'BoundingBox');
             
             % Kleine Objekte aussortieren
-            smallObjectIds = find([s.Area] < 5000);
+            smallObjectIds = find([s.Area] < this.small_object_threshold);
             s(smallObjectIds) = []; 
             
             if (length(s) > 0)
@@ -130,7 +131,7 @@ classdef ObjectDetection < StateObject
             imshow(img)
             hold on
             % Kleine Objekte aussortieren
-            smallObjectIds = find([s.Area] < 5000);
+            smallObjectIds = find([s.Area] < this.small_object_threshold);
             s(smallObjectIds) = [];
             centroids = cat(1, s.Centroid);
             bBoxes = cat(1, s.BoundingBox);
@@ -165,27 +166,32 @@ classdef ObjectDetection < StateObject
         end
         
         % Umrechnung von Pixel-Koordinaten in Roboterkoordinaten
-        function [x,y] = pixelToCoords(~, px, py)
-
-
-            %
+        function [x,y] = pixelToCoords(this, px, py)
+            % Roboter X-Achse ist Kamera Y-Achse !
+            % Roboter Y-Achse ist Kamera X-Achse !
+            
             % x-Richtung --> x(px) = m*px+t
             % f(173px) = -440 mm
             % f(354px) = -728 mm
             % Berechnung: [m,t] = [173 1; 354 1] \ [-440; -728]
             % m = -1.591    t = -164.7
+            x = -1.591*py -164.7;
 
-            x = -1.591*px -164.7;
-
-            %
             % y-Richtung --> y(py) = m*py+t
             % f(591px) = 86 mm
             % f(468px) = -107 mm
             % Berechnung: [m,t] = [591 1; 468 1] \ [86; -107]
             % m = 1.569   t = -841.3
-
-            y = 1.569*py -841.3;
-
+            y = 1.569*px -841.3;
+            
+            this.logger.info(['Bild: [',num2str(px),', ',num2str(py),'] -> Roboter: [',num2str(x),', ',num2str(y),']' ]);
+        end
+        
+        function [px, py] = coordsToPixel(this,x,y)
+            % Umkehrfunktion von pixelToCoords
+            px = (y+164.7)/-1.591;
+            py = (x+841.3)/1.569;
+            this.logger.info(['Roboter: [',num2str(x),', ',num2str(y),'] -> Bild: [',num2str(px),', ',num2str(py),']']);
         end
         
         function updateState(this)

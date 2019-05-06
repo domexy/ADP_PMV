@@ -53,7 +53,6 @@ classdef CANbus < StateObject
         end
         % Nachricht senden
         function sendMsg(this, canID, data)
-%             this.setStateActive('Sende Nachricht');
             % Versuche die Nachricht zu senden
             try
                 msg = canMessage(canID, false, 1);
@@ -64,11 +63,9 @@ classdef CANbus < StateObject
                 this.setStateError('Fehler beim Senden der CAN-Nachricht');
                 rethrow(ME)
             end
-%             this.setStateInactive('Betriebsbereit');
         end
         % Nachricht empfangen
         function receiveMsg(this,ch)
-%             this.setStateActive('Empfange Nachricht');
             msg = receive(ch, Inf);
             msg_1 = msg(1);
             analyseData(this,msg_1);
@@ -77,7 +74,6 @@ classdef CANbus < StateObject
                 msg_2 = msg(2);
                 analyseData(this,msg_2);
             end
-%             this.setStateInactive('Betriebsbereit');
         end
 
         function analyseData(this,msg)
@@ -91,26 +87,46 @@ classdef CANbus < StateObject
                         this.counter = 0;
                     end
                     this.msg_robot = msg.Data;
+                    if msg.Data
+                        notify(this,'LightBarrierIsoOn');
+                    else
+                        notify(this,'LightBarrierIsoOff');
+                    end
                     
                 case 257 % Nachrichten von MicroMod1 (Messsystem)
                      if this.msg_meas ~= msg.Data
+                         disp(msg.Data)
 %                         disp('CANbus.m --> Messsystemdaten ver�ndert');
                         this.msg_meas = msg.Data;
                         notify(this, 'Status_Measure_Changed');
                      end
+%                      disp('bb')
                      this.msg_meas = msg.Data;
+                    if msg.Data
+                        notify(this,'LightBarrierMeasOn');
+                    else
+                        notify(this,'LightBarrierMeasOff');
+                    end
                  
                 case 259
                     if msg.Data == 1
-%                         disp('CANbus.m --> Lichtschranke unterbrochen');
-                        notify(this,'LightBarrierInterruption');
+                        notify(this,'LightBarrierIsoOn');
                     else
-%                         disp('CANbus.m --> Lichtschranke nicht mehr unterbrochen');
+                        notify(this,'LightBarrierIsoOff');
+                    end
+                case 260
+                    if msg.Data == 1
+                        notify(this,'LightBarrierMeasOn');
+                    else
+                        notify(this,'LightBarrierMeasOff');
                     end
                 case 518
+                    disp('d')
 %                     this.logger.info('Nachricht erhalten');
                     notify(this, 'StartMeasurement')
-                     
+                otherwise
+                    disp(['CAN',num2str(msg.ID)])
+                    disp(msg.Data)
              end
         end
         % Dummy-Funktion, die ein Signal vom Roboter simuliert, dass ein
@@ -158,7 +174,10 @@ classdef CANbus < StateObject
         TakePhotos;
         Take3DImage;
         ClassifyCNN;
-        LightBarrierInterruption;
+        LightBarrierIsoOn;
+        LightBarrierIsoOff;
+        LightBarrierMeasOn;
+        LightBarrierMeasOff;
         StartMeasurement;
     end
 end

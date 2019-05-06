@@ -1,10 +1,10 @@
-classdef Robot < StateObject
+classdef Robot < StateObject & MovementController
     properties
         ur5
         objDetection
         cANbus;
         gripper;
-        homePose = [26 -290 447 180 0 0];
+        %         homePose = [26 -290 447 180 0 0];
         roa = [58 429 307 194]; %Region of Access = Greifbereich
     end
     
@@ -53,7 +53,9 @@ classdef Robot < StateObject
                 this.objDetection.init();
                 this.gripper.init(mega);
                 
-                this.home();
+                this.moveToHomePosition();
+                this.deactivateVacuum();
+                this.gripper.open();
                 
                 this.setStateInactive('Initialisiert');
             catch ME
@@ -61,7 +63,184 @@ classdef Robot < StateObject
                 this.logger.error(ME.message);
             end
         end
+                
+        % Objekt in Anlage ablegen
+        function success = feedObject(this)
+            this.setStateActive('Objektzuführung ...');
+            success = 1;
+            % Stelle sicher, das Roboter in Home-Position ist
+            this.moveToHomePosition();
+            this.gripper.open()
+            % Lokalisiere Objekte auf Objekttisch und finde Koordinaten vom
+            % grï¿½ï¿½ten Objekt
+            [xObj, yObj, locSuccess] = this.objDetection.locateObject();
+            
+            if (locSuccess)                             % Falls ein Objekt lokalisiert wurde
+                % Objekt mit Vakuumgreifer anheben
+                if (~this.liftObject(xObj, yObj))       % Falls Objekt mit Vakuum nicht angehoben werden kann
+                    this.logger.warning('Anheben war nicht erfolgreich');
+                    this.sweep();               % kehre Objekttisch ab
+                    success = 0;
+                else
+                    % Objekt mit Vakuum transportieren
+                    if (~this.placeObjectInRamp())         % Falls Objekt nicht transportiert werden konnte
+                        this.sweep();               % kehre Objekttisch ab
+                        success = 0;
+                    else
+                        this.moveToHomePosition();          % Fahre Roboter zurï¿½ck in die Home-Position
+                    end
+                end
+            else
+                this.sweep();
+                this.logger.warning('kein Objekt lokalisiert!');
+                success = 0;
+            end
+        end
         
+        % Versuche Objekt zu heben
+        % Parameter:    x, y des Objekts in Roboter-Koordinaten
+        % Rï¿½ckgabe:     status = 1, wenn Objekt gehoben werden konnte,
+        %               status = 0, wenn Objekt nicht gehoben werden konnte
+        function status = liftObject(this, xObj, yObj)
+            this.setStateActive('Hebe Objekt...');
+            
+            this.moveTo(yObj, xObj);         % Fahre Sauger auf Objekt
+            if ~this.pickUpVacuum()
+                if ~this.pickUpGripper()
+                    this.setStateInactive('Objekt nicht angehoben');
+                    status = 0;
+                    return;
+                end
+            end
+            status = 1;
+            this.setStateInactive('Objekt angehoben');
+        end
+        
+        function status = pickUpVacuum(this)
+            this.heaveToVacuumHeight();
+            this.activateVacuum();           % Schalte Vakuum ein
+            this.heaveToLiftingHeight();        % Hebe Objekt hoch
+            if this.checkPressureSensor()   % Falls Objekt noch am Sauger hï¿½ngt
+                status = 1;                 % Anheben hat funktioniert
+                this.logger.info('Unterdruck-Anheben erfolgreich');
+                return;                      % Schleife abbrechen
+            else                            % falls Objekt nicht am Sauger hï¿½ngt
+                this.deactivateVacuum();       % Vakuum ausschalten
+                status = 0;                 % Anheben hat nicht funkioniert
+                this.logger.warning('Unterdruck-Anheben fehlgeschlagen');
+            end
+        end
+        
+        function status = pickUpGripper(this)
+            this.gripper.open();
+            this.heaveToGrippingHeight();
+            this.gripper.close();           % Schalte Vakuum ein
+            this.heaveToLiftingHeight;        % Hebe Objekt hoch
+            if this.gripper.checkObject()   % Falls Objekt noch am Sauger hï¿½ngt
+                status = 1;                 % Anheben hat funktioniert
+                this.logger.info('Greifer-Anheben erfolgreich');
+                return;                      % Schleife abbrechen
+            else                            % falls Objekt nicht am Sauger hï¿½ngt
+                this.gripper.open();       % Vakuum ausschalten
+                status = 0;                 % Anheben hat nicht funkioniert
+                this.logger.warning('Greifer-Anheben fehlgeschlagen');
+            end
+        end
+        
+        % Fahre Objekt in Anlage
+        function success = placeObjectInRamp(this)
+            this.setStateActive('Bewege Objekt...')
+            success = 1;
+            this.moveToDroppingPosition();
+            if ~this.hasObject()
+                success = 0; % Hat Objekt verloren
+                this.setStateInactive('Objekt verloren');
+                return;
+            end
+            
+            this.heaveToDroppingHeight();
+            this.gripper.open();
+            this.deactivateVacuum();
+            
+            this.setStateInactive('Objekt abgelegt');
+        end
+        
+        function status = hasObject(this)
+            if this.checkPressureSensor()
+               status = 1;
+            elseif this.checkObject()
+                status = 1;
+            else
+                status = 0;
+            end
+        end
+        
+        % Unterdrucksensor ï¿½berprï¿½fen, ob Objekt an Sauger hï¿½ngt
+        function status = checkPressureSensor(this)
+            % Hier sollte der Drucksensor ausgelesen werden
+            % 1: Objekt hï¿½ngt am Sauger    0: Objekt hï¿½ngt nicht am Sauger
+            status = bitget(this.cANbus.msg_robot,4);
+            
+            if ~status
+                this.logger.warning('Kein Objekt am Sauger');
+            end
+        end
+        
+        % Unterdrucksensor ï¿½berprï¿½fen, ob Objekt an Sauger hï¿½ngt
+        function status = checkLightBarrier1(this)
+            % Hier sollte der Drucksensor ausgelesen werden
+            % 1: Objekt hï¿½ngt am Sauger    0: Objekt hï¿½ngt nicht am Sauger
+            status = bitget(this.cANbus.msg_robot,5);
+        end
+        
+        function activateVacuum(this)
+            this.cANbus.sendMsg(515,1);
+            this.logger.info('Unterdruck aktiviert');
+            this.vacuum_active = 1;
+        end
+        
+        function deactivateVacuum(this)
+            this.cANbus.sendMsg(515,0);
+            this.logger.info('Unterdruck deaktiviert');
+            this.vacuum_active = 0;
+        end
+        
+        % Geschwindigkeit des Roboters einstellen
+        function setSpeed(this, speed)
+            this.speed = speed;
+        end
+        
+        % Nachricht senden, dass Messsystem mit dem Messprozess beginnen
+        % kann
+        function startMeasurement(this)
+            
+        end
+        
+        function updateState(this)
+            try
+                if this.getState() ~= this.OFFLINE
+                    sub_system_states = [...
+                        this.cANbus.getState(),...
+                        this.objDetection.getState(),...
+                        this.gripper.getState()];
+                    if any(sub_system_states == this.ERROR)
+                        this.changeStateError('Fehler im Subsystem')
+                    end
+                end
+            catch
+                this.changeStateError('Fehler bei der Zustandsaktualisierung')
+            end
+        end
+        
+        function onStateChange(this)
+            if ~this.isReady()
+                
+            end
+        end
+    end
+    
+    % LOWLEVEL, sollte nicht für den Benutzer Verfügbar sein
+    methods(Hidden)
         % Funktion zum Auslesen der aktuellen Roboter-Pose
         function P = readPose(this)
             if this.ur5.BytesAvailable>0
@@ -102,7 +281,7 @@ classdef Robot < StateObject
             this.x = P(1);
             this.y = P(2);
             this.z = P(3);
-            this.x = P(4);
+            this.rx = P(4);
             this.ry = P(5);
             this.rz = P(6);
         end
@@ -114,6 +293,7 @@ classdef Robot < StateObject
         
         % Funktion zum Bewegen des Roboters
         function move(this,pose,orientation)
+            disp(pose)
             if ~this.isReady; return; end
             
             if nargin == 1
@@ -169,375 +349,6 @@ classdef Robot < StateObject
                     this.setStateInactive('Pose erreicht');
                     break;                  % ...abbrechen, weil Endposition erreicht wurde
                 end
-            end
-        end
-        
-        % Fahre Roboter in die Home-Position
-        function home(this)
-            this.logger.info('Kehre nach Home zurÃ¼ck');
-            this.move(this.homePose);
-            this.gripper.open();
-            this.setStateInactive('In Home-Pose');
-        end
-        
-        % Objekttische abkehren und damit von Objekten befreien
-        function sweep(this)
-            this.setStateActive('Wische...');
-            wp{1} = [0 -400 130 180 0 0];
-            wp{2} = [-173.99 -409.07 76.74 -144.38 -1.78 -107.33];
-            wp{3} = [-161.49 -409.07 66.74 -144.38 -0.78 -105.33];
-            wp{4} = [176.13 -409.07 64.24 143.58 0.78 107.73];
-            wp{5} = [0 -400 130 180 0 0];
-            wp{6} = [-173.99 -679.71 76.74 -144.38 -1.78 -107.33];
-            wp{7} = [-161.49 -679.71 66.74 -144.38 -0.78 -105.33];
-            wp{8} = [176.13 -679.71 64.24 143.58 0.78 107.73];
-            wp{9} = [0 -400 130 180 0 0];
-            
-            for k=1:length(wp)
-                curWP = wp{k};
-                this.move(curWP);
-            end
-            this.setStateInactive('Wischen abgeschlossen');
-            % Fahre Roboter zurï¿½ck in die Home-Position
-            this.home();
-        end
-        
-        % Objekt in Anlage ablegen
-        function success = feedObject(this)
-            this.setStateActive('ObjektzufÃ¼hrung ...');
-            success = 1;
-            % Stelle sicher, das Roboter in Home-Position ist
-            this.home();
-            % Lokalisiere Objekte auf Objekttisch und finde Koordinaten vom
-            % grï¿½ï¿½ten Objekt
-            [xObj, yObj, locSuccess] = this.objDetection.locateObject();
-            
-            if (locSuccess)                             % Falls ein Objekt lokalisiert wurde
-                % Objekt mit Vakuumgreifer anheben
-                if (~this.liftObject(xObj, yObj))       % Falls Objekt mit Vakuum nicht angehoben werden kann
-                    this.logger.warning('Vakuum-Greifer war nicht erfolgreich');
-                    % Objekt mit mech. Greifer anheben
-                    if(~this.liftObjectGripper(xObj, yObj)) % Falls Objekt mit mech. Greifer nicht angehoben werden kann
-                        this.sweep();                     % kehre Objekttisch ab
-                        success = 0;
-                    else
-                        this.logger.warning('Objekt mit Greifer gegriffen');
-                        % Objekt mit Greifer transportieren
-                        if (~this.moveObjectGripper())  % Falls Objekt nicht transportiert werden konnte
-                            this.sweep();               % kehre Objekttisch ab
-                            success = 0;
-                        else
-                            this.returnHome();          % Fahre Roboter zurï¿½ck in die Home-Position
-                        end
-                    end
-                    
-                else
-                    % Objekt mit Vakuum transportieren
-                    if (~this.moveObject())         % Falls Objekt nicht transportiert werden konnte
-                        this.sweep();               % kehre Objekttisch ab
-                        success = 0;
-                    else
-                        this.returnHome();          % Fahre Roboter zurï¿½ck in die Home-Position
-                    end
-                end
-                
-                
-            else
-                this.sweep();
-                this.logger.warning('kein Objekt lokalisiert!');
-                success = 0;
-            end
-            
-            
-        end
-        
-        % Unterdrucksensor ï¿½berprï¿½fen, ob Objekt an Sauger hï¿½ngt
-        function status = checkPressureSensor(this)
-            % Hier sollte der Drucksensor ausgelesen werden
-            % 1: Objekt hï¿½ngt am Sauger    0: Objekt hï¿½ngt nicht am Sauger
-            status = bitget(this.cANbus.msg_robot,4);
-            
-            if ~status
-                this.logger.warning('Kein Objekt am Sauger');
-            end
-        end
-        
-        % Unterdrucksensor ï¿½berprï¿½fen, ob Objekt an Sauger hï¿½ngt
-        function status = checkLightBarrier1(this)
-            % Hier sollte der Drucksensor ausgelesen werden
-            % 1: Objekt hï¿½ngt am Sauger    0: Objekt hï¿½ngt nicht am Sauger
-            status = bitget(this.cANbus.msg_robot,5);
-            
-            %             status = input('Robot.m --> checkPressureSensor(): ');
-        end
-        
-        % Vakuumsauger ein- bzw. ausschalten
-        function switchVacuum(this, status)
-            % status = 1: Vakuum anschalten
-            % status = 0: Vakuum ausschalten
-            switch status
-                case 1
-                    % Vakuumpumpe einschalten
-                    this.activateVacuum()
-                case 0
-                    % Vakuumpumpe ausschalten
-                    this.deactivateVacuum()
-                otherwise
-                    % Fehlerbehandlung
-                    this.logger.error('Fehler beim Schalten des Vakuums');
-            end
-        end
-        
-        function activateVacuum(this)
-            this.cANbus.sendMsg(515,1);
-            this.logger.info('Unterdruck aktiviert');
-            this.vacuum_active = 1;
-        end
-        
-        function deactivateVacuum(this)
-            this.cANbus.sendMsg(515,0);
-            this.logger.info('Unterdruck deaktiviert');
-            this.vacuum_active = 0;
-        end
-        
-        % Versuche Objekt zu heben
-        % Parameter:    x, y des Objekts in Roboter-Koordinaten
-        % Rï¿½ckgabe:     status = 1, wenn Objekt gehoben werden konnte,
-        %               status = 0, wenn Objekt nicht gehoben werden konnte
-        function status = liftObject(this, xObj, yObj)
-            this.setStateActive('Hebe Objekt...');
-            
-
-            objPosition = [yObj xObj 57 180 0 0];
-            liftPosition = [yObj xObj 107 180 0 0];
-            
-            this.move(liftPosition);            % 5 cm ï¿½ber das Objekt fahren
-            
-            % Versuche 3x das Objekt zu heben
-            for i = 1:1
-                this.move(objPosition);         % Fahre Sauger auf Objekt
-                this.switchVacuum(1);           % Schalte Vakuum ein
-                this.move(liftPosition);        % Hebe Objekt hoch
-                if this.checkPressureSensor()   % Falls Objekt noch am Sauger hï¿½ngt
-                    status = 1;                 % Anheben hat funktioniert
-                    this.logger.info('Unterdruck-Anheben erfolgreich');
-                    break;                      % Schleife abbrechen
-                else                            % falls Objekt nicht am Sauger hï¿½ngt
-                    this.switchVacuum(0);       % Vakuum ausschalten
-                    status = 0;                 % Anheben hat nicht funkioniert
-                    this.logger.warning('Unterdruck-Anheben fehlgeschlagen');
-                end
-            end
-            this.setStateInactive('Objekt angehoben');
-        end
-        
-        % Fahre Objekt in Anlage
-        function success = moveObject(this)
-            this.setStateActive('Bewege Objekt...')
-            % Wegpunkte fï¿½r Verfahrweg definieren
-            %             wp{1} = [91 -332 500 180 0 0];          % Pose: Hochfahren
-            %             wp{2} = [175 -425 500 -135 -120 0];     % Pose: Drehen zu Rampe 1
-            %             wp{3} = [550 60 500 0 -180 0];          % Pose: Drehen zu Rampe 2
-            wp{1} = [90 -332 644 -177 -29 0];        % Pose: Hochfahren
-            wp{2} = [400 94 760 -17 177 0];          % Pose: Drehen zu Rampe
-            wp{3} = [528 41 385 -15  167 0];         % Pose: Einfahren in Rampe
-            
-            % Webpunkte der Reihe nach abfahren
-            for k = 1:length(wp)
-                curWP = wp{k};          % aktueller Wegpunkt
-                this.move(curWP);       % zu aktuellem Wegpunkt fahren
-                this.logger.info('Wegpunkt erreicht');
-                if this.checkPressureSensor()   % Falls Objekt noch am Sauger hï¿½ngt
-                    success = 1;                 % Objekt hï¿½ngt noch am Sauger
-                else                            % falls Objekt nicht am Sauger hï¿½ngt
-                    this.logger.warning('Objekt verloren');
-                    this.switchVacuum(0);       % Vakuum ausschalten
-                    success = 0;                 % Rï¿½ckmeldung, dass Objekt verloren wurde
-                    this.returnHome();          % Fahre zurï¿½ck in die Home-Position
-                    break;                      % Schleife abbrechen
-                end
-            end
-            
-            % Messsystem informieren, dass gleich ein Objekt kommt und der
-            % Messprozess gestartet werden kann
-            this.startMeasurement();
-            %             pause(0.5);
-            
-            if (success)
-                this.setStateActive('Objekt ablegen...');
-                % Objekt in Anlage ablegen
-                this.cANbus.sendMsg(517,1);
-                pause(this.pause_length)
-                this.switchVacuum(0);           % Vakuum zum Ablegen ausschalten
-                pause(this.pause_length)
-                this.cANbus.sendMsg(517,0);
-                this.setStateInactive('Objekt abgelegt');
-            end
-        end
-        
-        % Fahre von Ablageposition zurï¿½ck in Home-Position
-        function returnHome(this)
-            this.setStateActive('Rampe verlassen...')
-            if isequal(round(this.readPose()), [528 41 385 -15  167 0])
-                wp = [400 94 760 -17 177 0];         % Pose: Aus Rampe hochfahren
-                this.move(wp);                      % Fahre zur Pose
-                wp = [90 -332 644 -177 -29 0];
-                this.move(wp);
-            end
-            this.setStateInactive('Rampe verlassen...')
-            
-            if isequal(round(this.readPose()), [400 94 760 -17 177 0])
-                wp = [90 -332 644 -177 -29 0];
-                this.move(wp);                      % Fahre zur Pose
-            end
-            
-            % Greifer schlieï¿½en, dass er nicht im Weg steht
-            this.gripper.close();
-            
-            this.home();                        % Fahre zu Home-Position
-            
-        end
-        
-        % Geschwindigkeit des Roboters einstellen
-        function setSpeed(this, speed)
-            this.speed = speed;
-        end
-        
-        % Nachricht senden, dass Messsystem mit dem Messprozess beginnen
-        % kann
-        function startMeasurement(this)
-            
-        end
-        
-        
-        
-        
-        
-        function status = liftObjectGripper(this, xObj, yObj)
-            this.setStateActive('Objekt mit Greifer heben...');
-            status = 1;
-            objPosition = [yObj xObj 105 180 0 0];
-            liftPosition = [yObj xObj 250 180 0 0];
-            
-            this.gripper.open();
-            this.move(objPosition);
-            pause(this.pause_length)% 5 cm ï¿½ber das Objekt fahren
-            this.gripper.close();
-            pause(this.pause_length);
-            this.move(liftPosition);
-            this.setStateActive('Objekt mit Greifer gehoben');
-        end
-        
-        function success = moveObjectGripper(this)
-            this.setStateActive('Objekt mit Greifer bewegen...');
-            success = 1;
-            % Wegpunkte fï¿½r Verfahrweg definieren
-            wp{1} = [90 -332 644 -177 -29 0];        % Pose: Hochfahren
-            wp{2} = [400 94 760 -17 177 0];          % Pose: Drehen zu Rampe
-            wp{3} = [528 41 385 -15  167 0];         % Pose: Einfahren in Rampe
-            
-            % Webpunkte der Reihe nach abfahren
-            for k = 1:length(wp)
-                curWP = wp{k};          % aktueller Wegpunkt
-                this.move(curWP);       % zu aktuellem Wegpunkt fahren
-                this.logger.info('Wegpunkt erreicht');
-                if ~this.gripper.checkObject()  % Falls Objekt noch am Greifer hï¿½ngt
-                    success = 1;                 % Objekt hï¿½ngt noch am Greifer
-                else                             % falls Objekt nicht am Greifer hï¿½ngt
-                    this.logger.warning('Objekt aus Greifer verloren');
-                    success = 0;                 % Rï¿½ckmeldung, dass Objekt verloren wurde
-                    this.returnHome();           % Fahre zurï¿½ck in die Home-Position
-                    break;                       % Schleife abbrechen
-                end
-            end
-            
-            this.setStateActive('Objekt mit Greifer bewegt');
-            this.startMeasurement();
-            
-            if (success)
-                % Objekt in Anlage ablegen
-                this.gripper.open();
-            end
-            this.setStateActive('Objekt mit Greifer abgelegt');
-        end
-        
-        function success = feedObjectGripper(this)
-            this.setStateActive('Objekt mit Greifer zufÃ¼hren...');
-            success = 1;
-            % Stelle sicher, das Roboter in Home-Position ist
-            this.home();
-            % Lokalisiere Objekte auf Objekttisch und finde Koordinaten vom
-            % grï¿½ï¿½ten Objekt
-            [xObj, yObj, locSuccess] = this.objDetection.locateObject();
-            
-            if (locSuccess)           % Falls ein Objekt lokalisiert wurde
-                % Objekt anheben
-                if (~this.liftObjectGripper(xObj, yObj))     % Falls Objekt nicht angehoben werden kann
-                    this.sweep();                     % kehre Objekttisch ab
-                    success = 0;
-                else
-                    % Objekt transportieren
-                    if (~this.moveObjectGripper())         % Falls Objekt nicht transportiert werden konnte
-                        this.sweep();               % kehre Objekttisch ab
-                        success = 0;
-                    else
-                        this.setStateInactive('Objekt mit Greifer zugefÃ¼hrt');
-                        this.returnHome();          % Fahre Roboter zurï¿½ck in die Home-Position
-                    end
-                end
-                
-                
-            else
-                this.sweep();
-                this.logger.warning('kein Objekt lokalisiert!');
-                success = 0;
-            end
-            
-        end
-        
-        function x = get.x(this)
-            x = this.x;
-        end
-        
-        function y = get.y(this)
-            y = this.y;
-        end
-        
-        function z = get.z(this)
-            z = this.z;
-        end
-        
-        function rx = get.rx(this)
-            rx = this.rx;
-        end
-        
-        function ry = get.ry(this)
-            ry = this.ry;
-        end
-        
-        function rz = get.rz(this)
-            rz = this.rz;
-        end
-        
-        function updateState(this)
-            try
-                if this.getState() ~= this.OFFLINE
-                    sub_system_states = [...
-                        this.cANbus.getState(),...
-                        this.objDetection.getState(),...
-                        this.gripper.getState()];
-                    if any(sub_system_states == this.ERROR)
-                        this.changeStateError('Fehler im Subsystem')
-                    end                
-                end
-            catch
-                this.changeStateError('Fehler bei der Zustandsaktualisierung')
-            end
-        end
-        
-        function onStateChange(this)
-            if ~this.isReady()
-                
             end
         end
     end

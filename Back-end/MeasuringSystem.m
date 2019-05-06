@@ -6,17 +6,18 @@ classdef MeasuringSystem < StateObject
         scale;
         paperObject;
         weighingBelt;
-        listenerStart;
-        light;
         servoVorhang;
     end
     
-    properties(SetAccess = private, SetObservable)
-        gate_position
+    properties(Hidden)
+        listenerStart;
+        listenerLightBarrierOn;
+        listenerLightBarrierOff;
     end
     
-    properties (Dependent, SetObservable)
-        gate_open
+    properties(SetAccess = private, SetObservable)
+        gate_position = 0;
+        light_barrier_blocked = 0;
     end
     
      methods
@@ -29,7 +30,6 @@ classdef MeasuringSystem < StateObject
             
             this.scale = Scale(this.logger);
             this.weighingBelt = WeighingBelt(this.logger);
-            this.light = Lighting(this.logger);
             this.cam = Camera(this.logger);
         end
         
@@ -39,10 +39,11 @@ classdef MeasuringSystem < StateObject
             this.servoVorhang = servo(mega,'D7','MinPulseDuration',5.3e-4 , 'MaxPulseDuration',2.6e-3);
             this.scale.init('COM1', cANbus);
             this.weighingBelt.init(cANbus);
-            this.light.init('LPT1');
             this.cam.init();
             
             this.listenerStart = addlistener(this.cANbus,'StartMeasurement',@this.startConvBelt);
+            this.listenerLightBarrierOn = addlistener(this.cANbus,'LightBarrierMeasOn',@this.setLightBarrierOn);
+            this.listenerLightBarrierOff = addlistener(this.cANbus,'LightBarrierMeasOff',@this.setLightBarrierOff);
             this.openGate();
             this.setStateInactive('Initialisiert');
         end
@@ -50,6 +51,7 @@ classdef MeasuringSystem < StateObject
         function [success, error] = measure(this)
             success = 1;
             error = 0;
+            this.weighingBelt.moveToCenter();
             this.closeGate();
             this.setStateActive('Messung gestartet');
             this.cam.takePhotos();
@@ -59,6 +61,7 @@ classdef MeasuringSystem < StateObject
 %             this.scale.zero();
             this.setStateInactive('Messung beendet');
             this.openGate();
+            this.weighingBelt.clearBelt();
         end
         
         function startConvBelt(this,~,~)
@@ -85,8 +88,12 @@ classdef MeasuringSystem < StateObject
             this.logger.info('Messzellentor geschlossen')
         end
         
-        function gate_open = get.gate_open(this)
-            gate_open = this.gate_position > 0.75;
+        function setLightBarrierOn(this,~,~)
+            this.light_barrier_blocked = 1;
+        end
+        
+        function setLightBarrierOff(this,~,~)
+            this.light_barrier_blocked = 0;
         end
                 
         function updateState(this)

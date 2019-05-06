@@ -10,7 +10,7 @@ classdef Process < StateObject
     end
     
     properties (SetObservable)
-        remaining_iterations
+        remaining_iterations = 0;
     end
     
     methods
@@ -26,6 +26,7 @@ classdef Process < StateObject
         end
         
         function init(this)
+            this.logger.info('Prozessinitialisierung gestartet...'); 
             % Baut Verbindung zum Prozess selbst auf
             this.mega = createMega();
             this.cANbus.init()
@@ -52,16 +53,13 @@ classdef Process < StateObject
                 this.setStateActive('Objekt Isolieren');
                 [success, error] = this.isoDevice.isolateObject();      % Versuche ein Objekt dem Messsystem zuzuf�hren
                 if (success)                                            % Falls das geklappt hat   
-                    this.measSystem.startConvBelt
-                        pause(2)
-                    this.measSystem.stopConvBelt
-%                     this.setStateActive('Objekt Messen');
-%                     [success, error] = this.measSystem.measure();       % Versuche die Messung durchzuf�hren    
-%                     if (~success)                                       % Falls das nicht geklappt hat
-%                         this.logger.warning('Fehler bei der Messung');   % gibt eine Fehlermeldung aus
-%                     end
-%                 else                                                    % Falls die Zuf�hrung nicht geklappt hat
-%                     this.logger.warning('Fehler bei der Vereinzelung');  % gibt eine Fehlermeldung aus    
+                    this.setStateActive('Objekt Messen');
+                    [success, error] = this.measSystem.measure();       % Versuche die Messung durchzuf�hren    
+                    if (~success)                                       % Falls das nicht geklappt hat
+                        this.logger.warning('Fehler bei der Messung');   % gibt eine Fehlermeldung aus
+                    end
+                else                                                    % Falls die Zuf�hrung nicht geklappt hat
+                    this.logger.warning('Fehler bei der Vereinzelung');  % gibt eine Fehlermeldung aus    
                 end
                 this.remaining_iterations = this.remaining_iterations - 1;
                 this.logger.info(['Iteration ', num2str(i) ,' abgeschlossen']);

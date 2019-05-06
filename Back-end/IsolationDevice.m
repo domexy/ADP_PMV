@@ -5,7 +5,15 @@ classdef IsolationDevice < StateObject
         cANbus;
         mega;
         drumFeeder;
-        listenerLightBarrierInterruption;
+    end
+    
+    properties(Hidden)
+        listenerLightBarrierOn;
+        listenerLightBarrierOff;
+    end
+    
+    properties(SetAccess = private, SetObservable)
+        light_barrier_blocked = 0;
     end
     
     methods
@@ -28,6 +36,9 @@ classdef IsolationDevice < StateObject
                 this.convBelt.init(cANbus);
                 this.robot.init(cANbus, this.mega);
                 this.drumFeeder.init(cANbus, this.mega);
+                
+                this.listenerLightBarrierOn = addlistener(this.cANbus,'LightBarrierIsoOn',@this.setLightBarrierOn);
+                this.listenerLightBarrierOff = addlistener(this.cANbus,'LightBarrierIsoOff',@this.setLightBarrierOff);
 
                 this.setStateInactive('Initialisiert');
             catch ME
@@ -41,7 +52,7 @@ classdef IsolationDevice < StateObject
         function [success, error] = isolateObject(this)
             success = 1;
             error = 0;
-            
+            this.setStateActive('Vorvereinzeln...');
             if(~this.robot.objDetection.objectOnTable())    % Falls kein Objekt auf dem Objekttisch liegt
                 this.convBelt.start();                      % F�rderband einschalten
                 if(~this.drumFeeder.isolate())              % Falls der Nachschub �ber das F�rderband nicht klappt
@@ -58,6 +69,7 @@ classdef IsolationDevice < StateObject
 %                success = 0;
 %             end
             if (success)                                    % Falls Vorvereinzelung geklappt hat
+                this.setStateActive('Vereinzeln...')
                 if (~this.robot.feedObject())               % Falls der Transport des Objekts ins Messsystem nicht klappt
                     success = 0;
                     error = 'Transport';
@@ -66,7 +78,7 @@ classdef IsolationDevice < StateObject
                 end
             
             end
-            
+            this.setStateInactive('Bertriebsbereit')
         end
         
         % Dauerschleife
@@ -75,6 +87,14 @@ classdef IsolationDevice < StateObject
             while (toc(timer) < 180)
                 this.isolateObject()
             end
+        end
+        
+        function setLightBarrierOn(this,~,~)
+            this.light_barrier_blocked = 1;
+        end
+        
+        function setLightBarrierOff(this,~,~)
+            this.light_barrier_blocked = 0;
         end
         
         function updateState(this)

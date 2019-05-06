@@ -34,7 +34,7 @@ classdef Camera < StateObject
                 this.src.ExposureTimeAbs = 50000; 
                 % Verbindung zur Beleuchtung herstellen
                 this.light.init('LPT1');
-                this.light.setLightOff();
+%                 this.light.setLightOff();
                 
                 this.setStateInactive('Initialisiert');
             catch ME

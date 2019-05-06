@@ -1,0 +1,136 @@
+2019-04-25T16:19:19,624 - Warning - BindingManager.checkPeriod : BindingMananger State_Lamps has period of 2s, but aims for 1s
+2019-04-25T16:19:19,633 - Info - BindingManager.setPeriod : BindingMananger State_Lamps set period to 1.8
+2019-04-25T16:19:19,647 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 2s, but aims for 0.1s
+2019-04-25T16:19:19,654 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 1.8
+2019-04-25T16:19:43,149 - Warning - BindingManager.checkPeriod : BindingMananger State_Lamps has period of 1.8s, but aims for 1s
+2019-04-25T16:19:43,159 - Info - BindingManager.setPeriod : BindingMananger State_Lamps set period to 1.62
+2019-04-25T16:19:43,166 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 1.8s, but aims for 0.1s
+2019-04-25T16:19:43,170 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 1.62
+2019-04-25T16:20:04,239 - Warning - BindingManager.checkPeriod : BindingMananger State_Lamps has period of 1.62s, but aims for 1s
+2019-04-25T16:20:04,245 - Info - BindingManager.setPeriod : BindingMananger State_Lamps set period to 1.458
+2019-04-25T16:20:04,251 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 1.62s, but aims for 0.1s
+2019-04-25T16:20:04,254 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 1.458
+2019-04-25T16:20:23,215 - Warning - BindingManager.checkPeriod : BindingMananger State_Lamps has period of 1.458s, but aims for 1s
+2019-04-25T16:20:23,217 - Info - BindingManager.setPeriod : BindingMananger State_Lamps set period to 1.312
+2019-04-25T16:20:23,220 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 1.458s, but aims for 0.1s
+2019-04-25T16:20:23,223 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 1.312
+2019-04-25T16:20:40,292 - Warning - BindingManager.checkPeriod : BindingMananger State_Lamps has period of 1.312s, but aims for 1s
+2019-04-25T16:20:40,326 - Info - BindingManager.setPeriod : BindingMananger State_Lamps set period to 1.181
+2019-04-25T16:20:40,331 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 1.312s, but aims for 0.1s
+2019-04-25T16:20:40,334 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 1.181
+2019-04-25T16:20:55,694 - Warning - BindingManager.checkPeriod : BindingMananger State_Lamps has period of 1.181s, but aims for 1s
+2019-04-25T16:20:55,696 - Info - BindingManager.setPeriod : BindingMananger State_Lamps set period to 1.063
+2019-04-25T16:20:55,700 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 1.181s, but aims for 0.1s
+2019-04-25T16:20:55,702 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 1.063
+2019-04-25T16:21:09,531 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 1.063s, but aims for 0.1s
+2019-04-25T16:21:09,532 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.957
+2019-04-25T16:21:21,021 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.957s, but aims for 0.1s
+2019-04-25T16:21:21,023 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.861
+2019-04-25T16:21:31,361 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.861s, but aims for 0.1s
+2019-04-25T16:21:31,362 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.775
+2019-04-25T16:21:40,667 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.775s, but aims for 0.1s
+2019-04-25T16:21:40,668 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.698
+2019-04-25T16:21:49,049 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.698s, but aims for 0.1s
+2019-04-25T16:21:49,051 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.628
+2019-04-25T16:21:56,591 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.628s, but aims for 0.1s
+2019-04-25T16:21:56,593 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.565
+2019-04-25T16:22:03,378 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.565s, but aims for 0.1s
+2019-04-25T16:22:03,380 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.509
+2019-04-25T16:22:09,492 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.509s, but aims for 0.1s
+2019-04-25T16:22:09,494 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.458
+2019-04-25T16:22:14,996 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.458s, but aims for 0.1s
+2019-04-25T16:22:14,998 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.412
+2019-04-25T16:22:19,946 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.412s, but aims for 0.1s
+2019-04-25T16:22:19,948 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.371
+2019-04-25T16:22:24,405 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.371s, but aims for 0.1s
+2019-04-25T16:22:24,407 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.334
+2019-04-25T16:22:28,420 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.334s, but aims for 0.1s
+2019-04-25T16:22:28,422 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.301
+2019-04-25T16:22:32,039 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.301s, but aims for 0.1s
+2019-04-25T16:22:32,041 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.271
+2019-04-25T16:22:35,299 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.271s, but aims for 0.1s
+2019-04-25T16:22:35,301 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.244
+2019-04-25T16:22:38,232 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.244s, but aims for 0.1s
+2019-04-25T16:22:38,235 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.22
+2019-04-25T16:22:40,879 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.22s, but aims for 0.1s
+2019-04-25T16:22:40,881 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.198
+2019-04-25T16:22:43,262 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.198s, but aims for 0.1s
+2019-04-25T16:22:43,264 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.178
+2019-04-25T16:22:45,404 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.178s, but aims for 0.1s
+2019-04-25T16:22:45,407 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.16
+2019-04-25T16:22:47,349 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.16s, but aims for 0.1s
+2019-04-25T16:22:47,351 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.144
+2019-04-25T16:22:49,085 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.144s, but aims for 0.1s
+2019-04-25T16:22:49,087 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.13
+2019-04-25T16:22:50,653 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.13s, but aims for 0.1s
+2019-04-25T16:22:50,655 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.117
+2019-04-25T16:22:52,064 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.117s, but aims for 0.1s
+2019-04-25T16:22:52,066 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.105
+2019-04-25T16:24:26,549 - Warning - BindingManager.checkPeriod : BindingMananger State_Lamps has period of 2s, but aims for 1s
+2019-04-25T16:24:26,564 - Info - BindingManager.setPeriod : BindingMananger State_Lamps set period to 1.8
+2019-04-25T16:24:26,583 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 2s, but aims for 0.1s
+2019-04-25T16:24:26,593 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 1.8
+2019-04-25T16:24:51,912 - Warning - BindingManager.checkPeriod : BindingMananger State_Lamps has period of 1.8s, but aims for 1s
+2019-04-25T16:24:51,919 - Info - BindingManager.setPeriod : BindingMananger State_Lamps set period to 1.62
+2019-04-25T16:24:51,927 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 1.8s, but aims for 0.1s
+2019-04-25T16:24:51,932 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 1.62
+2019-04-25T16:25:12,999 - Warning - BindingManager.checkPeriod : BindingMananger State_Lamps has period of 1.62s, but aims for 1s
+2019-04-25T16:25:13,005 - Info - BindingManager.setPeriod : BindingMananger State_Lamps set period to 1.458
+2019-04-25T16:25:13,010 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 1.62s, but aims for 0.1s
+2019-04-25T16:25:13,013 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 1.458
+2019-04-25T16:25:31,975 - Warning - BindingManager.checkPeriod : BindingMananger State_Lamps has period of 1.458s, but aims for 1s
+2019-04-25T16:25:31,977 - Info - BindingManager.setPeriod : BindingMananger State_Lamps set period to 1.312
+2019-04-25T16:25:31,981 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 1.458s, but aims for 0.1s
+2019-04-25T16:25:31,984 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 1.312
+2019-04-25T16:25:49,046 - Warning - BindingManager.checkPeriod : BindingMananger State_Lamps has period of 1.312s, but aims for 1s
+2019-04-25T16:25:49,048 - Info - BindingManager.setPeriod : BindingMananger State_Lamps set period to 1.181
+2019-04-25T16:25:49,052 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 1.312s, but aims for 0.1s
+2019-04-25T16:25:49,054 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 1.181
+2019-04-25T16:26:04,412 - Warning - BindingManager.checkPeriod : BindingMananger State_Lamps has period of 1.181s, but aims for 1s
+2019-04-25T16:26:04,414 - Info - BindingManager.setPeriod : BindingMananger State_Lamps set period to 1.063
+2019-04-25T16:26:04,417 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 1.181s, but aims for 0.1s
+2019-04-25T16:26:04,420 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 1.063
+2019-04-25T16:26:18,251 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 1.063s, but aims for 0.1s
+2019-04-25T16:26:18,253 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.957
+2019-04-25T16:26:29,742 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.957s, but aims for 0.1s
+2019-04-25T16:26:29,744 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.861
+2019-04-25T16:26:40,081 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.861s, but aims for 0.1s
+2019-04-25T16:26:40,084 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.775
+2019-04-25T16:26:49,389 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.775s, but aims for 0.1s
+2019-04-25T16:26:49,391 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.698
+2019-04-25T16:26:57,772 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.698s, but aims for 0.1s
+2019-04-25T16:26:57,774 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.628
+2019-04-25T16:27:05,316 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.628s, but aims for 0.1s
+2019-04-25T16:27:05,318 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.565
+2019-04-25T16:27:12,103 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.565s, but aims for 0.1s
+2019-04-25T16:27:12,105 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.509
+2019-04-25T16:27:18,217 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.509s, but aims for 0.1s
+2019-04-25T16:27:18,219 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.458
+2019-04-25T16:27:23,720 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.458s, but aims for 0.1s
+2019-04-25T16:27:23,722 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.412
+2019-04-25T16:27:28,669 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.412s, but aims for 0.1s
+2019-04-25T16:27:28,672 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.371
+2019-04-25T16:27:33,129 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.371s, but aims for 0.1s
+2019-04-25T16:27:33,131 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.334
+2019-04-25T16:27:37,144 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.334s, but aims for 0.1s
+2019-04-25T16:27:37,147 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.301
+2019-04-25T16:27:40,764 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.301s, but aims for 0.1s
+2019-04-25T16:27:40,766 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.271
+2019-04-25T16:27:44,023 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.271s, but aims for 0.1s
+2019-04-25T16:27:44,025 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.244
+2019-04-25T16:27:46,966 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.244s, but aims for 0.1s
+2019-04-25T16:27:46,997 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.22
+2019-04-25T16:27:49,645 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.22s, but aims for 0.1s
+2019-04-25T16:27:49,647 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.198
+2019-04-25T16:27:52,028 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.198s, but aims for 0.1s
+2019-04-25T16:27:52,030 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.178
+2019-04-25T16:27:54,171 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.178s, but aims for 0.1s
+2019-04-25T16:27:54,173 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.16
+2019-04-25T16:27:56,097 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.16s, but aims for 0.1s
+2019-04-25T16:27:56,099 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.144
+2019-04-25T16:27:57,833 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.144s, but aims for 0.1s
+2019-04-25T16:27:57,835 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.13
+2019-04-25T16:27:59,400 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.13s, but aims for 0.1s
+2019-04-25T16:27:59,402 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.117
+2019-04-25T16:28:00,810 - Warning - BindingManager.checkPeriod : BindingMananger Robot_Gripper has period of 0.117s, but aims for 0.1s
+2019-04-25T16:28:00,812 - Info - BindingManager.setPeriod : BindingMananger Robot_Gripper set period to 0.105

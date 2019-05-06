@@ -21,7 +21,9 @@ classdef Lighting < StateObject
         end
         
         function init(this,lpt)
-            this.lpt = lpt;
+            if nargin > 1
+                this.lpt = lpt;
+            end
             
             this.setStateInactive('Initialisiert');
         end
@@ -44,13 +46,14 @@ classdef Lighting < StateObject
             byte = int32(double(w)*16 + double(b)*8 + double(g)*4 + double(r)*2 + double(uv));
             
             os = java.io.FileOutputStream(this.lpt); % open stream to LPT1 
-            disp('->')
-            disp(os)
             ps = java.io.PrintStream(os); % define PrintStream
             ps.write(byte); % write into buffer 
             ps.close
-            
-            this.setStateActive(['LichtCode: ', dec2bin(byte,5)]);
+            if byte == 0
+                this.setStateInactive(['Aus']);
+            else
+                this.setStateActive(['LichtCode: ', dec2bin(byte,5)]);
+            end
         end
         
         function setLightWhite(this)

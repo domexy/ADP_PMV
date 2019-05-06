@@ -6,7 +6,7 @@ classdef Scale < StateObject
     end
     
     properties(SetAccess = private, SetObservable)
-        mass
+        mass = 0;
     end
     
     methods
@@ -86,13 +86,15 @@ classdef Scale < StateObject
             
             while(true)
                 pause(0.1);
-                if (this.serialPort.BytesAvailable >= 15)
+                if toc(timer) <= 0.2%(this.serialPort.BytesAvailable >= 15)
                     [mass,count,msg] = fscanf(this.serialPort,'\002%f g  \003');
+                    disp([mass,count,msg])
                     this.mass = mass;
                     this.logger.info(['Waage misst: ',num2str(mass),' [g]']);
                     break;
-                elseif (toc(timer) > 10)
+                elseif (toc(timer) > 0.2)
                     this.logger.warning('Mass nach 10 Sec. noch nicht da');
+                    mass = [];
                     break;
                 end
                 

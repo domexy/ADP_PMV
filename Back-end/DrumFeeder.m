@@ -45,7 +45,7 @@ classdef DrumFeeder < StateObject
             this.start();
             tic
             while (this.cANbus.statusLightBarrier1() == 0)
-                pause(0.1)
+                pause(0.01)
                 if (toc > 180)
                     this.logger.warning('Timeout: Lichtschranke1');
                     success = 0;
