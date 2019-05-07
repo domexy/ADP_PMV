@@ -48,6 +48,7 @@ classdef Lighting < StateObject
             os = java.io.FileOutputStream(this.lpt); % open stream to LPT1 
             ps = java.io.PrintStream(os); % define PrintStream
             ps.write(byte); % write into buffer 
+            disp(byte)
             ps.close
             if byte == 0
                 this.setStateInactive(['Aus']);

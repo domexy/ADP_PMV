@@ -5,7 +5,7 @@ classdef ObjectDetection < StateObject
         roi = [58 429 307 194];
         roiMask
         imgSize
-        small_object_threshold = 3000;
+        small_object_threshold = 1000;
     end
     
     properties(SetAccess = private, SetObservable)
@@ -151,9 +151,10 @@ classdef ObjectDetection < StateObject
                 rectangle('Position', bBoxes(maxIdx,1:4),'EdgeColor','r', 'LineWidth', 1)
                 hold off
                 
-                px = centroids(maxIdx,2);
-                py = centroids(maxIdx,1);
+                px = centroids(maxIdx,1);
+                py = centroids(maxIdx,2);
 
+                disp(num2str([px,py]))
                 [x,y] = this.pixelToCoords(px,py);
                 
                 success = 1;
@@ -175,22 +176,22 @@ classdef ObjectDetection < StateObject
             % f(354px) = -728 mm
             % Berechnung: [m,t] = [173 1; 354 1] \ [-440; -728]
             % m = -1.591    t = -164.7
-            x = -1.591*py -164.7;
+            y = -1.591*py -164.7;
 
             % y-Richtung --> y(py) = m*py+t
             % f(591px) = 86 mm
             % f(468px) = -107 mm
             % Berechnung: [m,t] = [591 1; 468 1] \ [86; -107]
             % m = 1.569   t = -841.3
-            y = 1.569*px -841.3;
+            x = 1.569*px -841.3;
             
             this.logger.info(['Bild: [',num2str(px),', ',num2str(py),'] -> Roboter: [',num2str(x),', ',num2str(y),']' ]);
         end
         
         function [px, py] = coordsToPixel(this,x,y)
             % Umkehrfunktion von pixelToCoords
-            px = (y+164.7)/-1.591;
-            py = (x+841.3)/1.569;
+            px = (x+164.7)/-1.591;
+            py = (y+841.3)/1.569;
             this.logger.info(['Roboter: [',num2str(x),', ',num2str(y),'] -> Bild: [',num2str(px),', ',num2str(py),']']);
         end
         

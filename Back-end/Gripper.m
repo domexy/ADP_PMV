@@ -6,7 +6,7 @@ classdef Gripper < StateObject
     end
     
     properties(SetAccess = private, SetObservable)
-        offset = 0.06;
+        offset = 0.05;
         angle_1 = 0;
         angle_2 = 0;
         has_contact = 0;
@@ -117,8 +117,7 @@ classdef Gripper < StateObject
         end
         
         function status = checkObject(this)
-            this.close();
-            status = checkContact(this);
+            status = ~checkContact(this);
             if status
                 this.logger.warning('Greifer hat kein Objekt');
             end

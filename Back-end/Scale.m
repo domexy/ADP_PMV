@@ -80,21 +80,25 @@ classdef Scale < StateObject
             
         end
         
-        function mass = awaitMass(this)
+        function status = awaitMass(this)
             this.setStateActive('Masse bestimmen');
             timer = tic;
             
             while(true)
                 pause(0.1);
-                if toc(timer) <= 0.2%(this.serialPort.BytesAvailable >= 15)
+                if (this.serialPort.BytesAvailable >= 15)
+%                     line = fgetl(this.serialPort)
+%                     disp(line)
                     [mass,count,msg] = fscanf(this.serialPort,'\002%f g  \003');
                     disp([mass,count,msg])
                     this.mass = mass;
                     this.logger.info(['Waage misst: ',num2str(mass),' [g]']);
+                    status = 1;
                     break;
-                elseif (toc(timer) > 0.2)
+                elseif (toc(timer) > 10)
                     this.logger.warning('Mass nach 10 Sec. noch nicht da');
-                    mass = [];
+%                     mass = [];
+                    status = 0;
                     break;
                 end
                 

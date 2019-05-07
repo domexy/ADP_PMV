@@ -1,4 +1,5 @@
 function [process, gui] = startGUI(process)
+warning('off')
 addpath(genpath('Front-end'))
 addpath(genpath('Back-end'))
 

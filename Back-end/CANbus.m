@@ -81,32 +81,31 @@ classdef CANbus < StateObject
                 case 256 % Nachrichten von MicroMod0 (Roboter)
                     this.counter = this.counter +1;
                     if (this.msg_robot ~= msg.Data || this.counter >=10) % Wird bei Status�nderung oder alle 500ms aufgerufen
-%                         disp('CANbus.m --> Roboterdaten aktualisiert');
+                        if this.msg_robot ~= msg.Data
+                            if msg.Data
+                                notify(this,'LightBarrierIsoOn');
+                            else
+                                notify(this,'LightBarrierIsoOff');
+                            end
+                        end
                         this.msg_robot = msg.Data;
                         notify(this, 'Status_Robot_Changed');
                         this.counter = 0;
                     end
                     this.msg_robot = msg.Data;
-                    if msg.Data
-                        notify(this,'LightBarrierIsoOn');
-                    else
-                        notify(this,'LightBarrierIsoOff');
-                    end
                     
                 case 257 % Nachrichten von MicroMod1 (Messsystem)
                      if this.msg_meas ~= msg.Data
-                         disp(msg.Data)
 %                         disp('CANbus.m --> Messsystemdaten ver�ndert');
                         this.msg_meas = msg.Data;
                         notify(this, 'Status_Measure_Changed');
+                        if msg.Data
+                            notify(this,'LightBarrierMeasOn');
+                        else
+                            notify(this,'LightBarrierMeasOff');
+                        end
                      end
-%                      disp('bb')
                      this.msg_meas = msg.Data;
-                    if msg.Data
-                        notify(this,'LightBarrierMeasOn');
-                    else
-                        notify(this,'LightBarrierMeasOff');
-                    end
                  
                 case 259
                     if msg.Data == 1
@@ -121,7 +120,6 @@ classdef CANbus < StateObject
                         notify(this,'LightBarrierMeasOff');
                     end
                 case 518
-                    disp('d')
 %                     this.logger.info('Nachricht erhalten');
                     notify(this, 'StartMeasurement')
                 otherwise

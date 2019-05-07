@@ -104,7 +104,7 @@ classdef Robot < StateObject & MovementController
         function status = liftObject(this, xObj, yObj)
             this.setStateActive('Hebe Objekt...');
             
-            this.moveTo(yObj, xObj);         % Fahre Sauger auf Objekt
+            this.moveTo(xObj, yObj);         % Fahre Sauger auf Objekt
             if ~this.pickUpVacuum()
                 if ~this.pickUpGripper()
                     this.setStateInactive('Objekt nicht angehoben');
@@ -119,7 +119,7 @@ classdef Robot < StateObject & MovementController
         function status = pickUpVacuum(this)
             this.heaveToVacuumHeight();
             this.activateVacuum();           % Schalte Vakuum ein
-            this.heaveToLiftingHeight();        % Hebe Objekt hoch
+            this.heaveToMovementHeight();        % Hebe Objekt hoch
             if this.checkPressureSensor()   % Falls Objekt noch am Sauger h�ngt
                 status = 1;                 % Anheben hat funktioniert
                 this.logger.info('Unterdruck-Anheben erfolgreich');
@@ -135,7 +135,7 @@ classdef Robot < StateObject & MovementController
             this.gripper.open();
             this.heaveToGrippingHeight();
             this.gripper.close();           % Schalte Vakuum ein
-            this.heaveToLiftingHeight;        % Hebe Objekt hoch
+            this.heaveToMovementHeight;        % Hebe Objekt hoch
             if this.gripper.checkObject()   % Falls Objekt noch am Sauger h�ngt
                 status = 1;                 % Anheben hat funktioniert
                 this.logger.info('Greifer-Anheben erfolgreich');
@@ -159,16 +159,21 @@ classdef Robot < StateObject & MovementController
             end
             
             this.heaveToDroppingHeight();
-            this.gripper.open();
-            this.deactivateVacuum();
+            notify(this,'Handoff_Request');
+            this.releaseObject([],[],[],[]);
             
             this.setStateInactive('Objekt abgelegt');
+        end
+        
+        function releaseObject(this,~,~,~,~)
+            this.gripper.open();
+            this.deactivateVacuum();
         end
         
         function status = hasObject(this)
             if this.checkPressureSensor()
                status = 1;
-            elseif this.checkObject()
+            elseif this.gripper.checkObject()
                 status = 1;
             else
                 status = 0;
@@ -293,7 +298,6 @@ classdef Robot < StateObject & MovementController
         
         % Funktion zum Bewegen des Roboters
         function move(this,pose,orientation)
-            disp(pose)
             if ~this.isReady; return; end
             
             if nargin == 1
@@ -342,7 +346,7 @@ classdef Robot < StateObject & MovementController
             % angekommen ist. Ansonsten werden evtl. Wegpunkte �bersprungen
             while(true)
                 pose1 = this.readPose();    % Aktuelle Position auslesen
-                pause(0.1);                 % Kurz warten
+                pause(0.02);                 % Kurz warten
                 pose2 = this.readPose();    % Nochmal Position auslesen
                 this.changeStateActive('Verfahre...');
                 if(isequal(pose1,pose2))    % Falls die beiden Positionen gleich sind...
@@ -354,5 +358,6 @@ classdef Robot < StateObject & MovementController
     end
     
     events
+        Handoff_Request
     end
 end

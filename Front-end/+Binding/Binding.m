@@ -13,6 +13,10 @@ classdef Binding < handle
             try
                 this.eval()
             catch ME
+                if strcmp(ME.identifier, 'MATLAB:class:InvalidHandle')
+                   delete(this); 
+                   disp(1)
+                end
                 disp(ME.message)
             end
         end

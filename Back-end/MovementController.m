@@ -13,8 +13,9 @@ classdef MovementController < handle
     
     properties(Access = private, Constant)
         % Bewegungsebenen
-        LOW_MOVING_PLANE = [447 180 0 0]; % z,rx,ry,rz
-        HIGH_MOVING_PLANE = [560 135 120 0]; % z,rx,ry,rz
+%         LOW_MOVING_PLANE = [447 180 0 0]; % z,rx,ry,rz
+        LOW_MOVING_PLANE = [600 180 0 0]; % z,rx,ry,rz
+        HIGH_MOVING_PLANE = [650 135 120 0]; % z,rx,ry,rz
         VACUUM_PLANE = [57 180 0 0]; % z,rx,ry,rz
         GRIPPING_PLANE = [105 180 0 0]; % z,rx,ry,rz
         LIFTING_PLANE = [250 180 0 0]; % z,rx,ry,rz
@@ -34,7 +35,7 @@ classdef MovementController < handle
         SWEEPING_Y_LIMITS = [-720,-290]; % min,max
         
         % Koordinaten
-        LOW_HIGH_Y_TRANSITION_COORD = -350; % y-koordinate für den sicheren übergang LOW<->HIGH
+        LOW_HIGH_Y_TRANSITION_COORD = -550; % y-koordinate für den sicheren übergang LOW<->HIGH
         LOW_HIGH_X_THRESHOLD = 137; % x-koordinate über der die High-Positin
         %statt der LOW-Position verwendet wird um Kollisionen mit der Rampe zu vermeiden
         DROPPING_XY_COORDS = [528, 41];
@@ -70,20 +71,20 @@ classdef MovementController < handle
             
             if target_position_is_high
                 if ((x < this.MOVING_HIGH_X_LIMITS(1)) || (this.MOVING_HIGH_X_LIMITS(2) < x))
-                    this.logger.warning(['X-Position außerhalb der Limits: ', this.MOVING_HIGH_X_LIMITS])
+                    this.logger.warning(['X-Position ',num2str(x),' außerhalb der Limits: ', this.MOVING_HIGH_X_LIMITS])
                     return
                 end
                 if ((y < this.MOVING_HIGH_Y_LIMITS(1)) || (this.MOVING_HIGH_Y_LIMITS(2) < y))
-                    this.logger.warning(['Y-Position außerhalb der Limits: ', num2str(this.MOVING_HIGH_Y_LIMITS)])
+                    this.logger.warning(['Y-Position ',num2str(y),' außerhalb der Limits: ', num2str(this.MOVING_HIGH_Y_LIMITS)])
                     return
                 end
             else
                 if ((x < this.MOVING_LOW_X_LIMITS(1)) || (this.MOVING_LOW_X_LIMITS(2) < x))
-                    this.logger.warning(['X-Position außerhalbhsd der Limits: ', num2str(this.MOVING_LOW_X_LIMITS)])
+                    this.logger.warning(['X-Position ',num2str(x),' außerhalbhsd der Limits: ', num2str(this.MOVING_LOW_X_LIMITS)])
                     return
                 end
                 if ((y < this.MOVING_LOW_Y_LIMITS(1)) || (this.MOVING_LOW_Y_LIMITS(2) < y))
-                    this.logger.warning(['Y-Position außerhalb der Limits: ', num2str(this.MOVING_LOW_Y_LIMITS)])
+                    this.logger.warning(['Y-Position ',num2str(y),' außerhalb der Limits: ', num2str(this.MOVING_LOW_Y_LIMITS)])
                     return
                 end
             end
@@ -113,11 +114,11 @@ classdef MovementController < handle
             x = lifting_position(1);
             y = lifting_position(2);
             if ((x < this.LIFTING_X_LIMITS(1)) || (this.LIFTING_X_LIMITS(2) < x))
-                this.logger.warning(['X-Position außerhalb der Limits: ', num2str(this.LIFTING_X_LIMITS)]);
+                this.logger.warning(['X-Position ',num2str(x),' außerhalb der Limits: ', num2str(this.LIFTING_X_LIMITS)]);
                 return
             end
             if ((y < this.LIFTING_Y_LIMITS(1)) || (this.LIFTING_Y_LIMITS(2) < y))
-                this.logger.warning(['Y-Position außerhalb der Limits: ', num2str(this.LIFTING_X_LIMITS)]);
+                this.logger.warning(['Y-Position ',num2str(y),' außerhalb der Limits: ', num2str(this.LIFTING_X_LIMITS)]);
                 return
             end
             this.move(lifting_position)
@@ -128,11 +129,11 @@ classdef MovementController < handle
             x = gripping_position(1);
             y = gripping_position(2);
             if ((x < this.LIFTING_X_LIMITS(1)) || (this.LIFTING_X_LIMITS(2) < x))
-                this.logger.warning(['X-Position außerhalb der Limits: ', num2str(this.LIFTING_X_LIMITS)]);
+                this.logger.warning(['X-Position ',num2str(x),' außerhalb der Limits: ', num2str(this.LIFTING_X_LIMITS)]);
                 return
             end
             if ((y < this.LIFTING_Y_LIMITS(1)) || (this.LIFTING_Y_LIMITS(2) < y))
-                this.logger.warning(['Y-Position außerhalb der Limits: ', num2str(this.LIFTING_X_LIMITS)]);
+                this.logger.warning(['Y-Position ',num2str(y),' außerhalb der Limits: ', num2str(this.LIFTING_X_LIMITS)]);
                 return
             end
             this.move(gripping_position)
@@ -143,11 +144,11 @@ classdef MovementController < handle
             x = vacuum_position(1);
             y = vacuum_position(2);
             if ((x < this.LIFTING_X_LIMITS(1)) || (this.LIFTING_X_LIMITS(2) < x))
-                this.logger.warning(['X-Position außerhalb der Limits: ', num2str(this.LIFTING_X_LIMITS)]);
+                this.logger.warning(['X-Position ',num2str(x),' außerhalb der Limits: ', num2str(this.LIFTING_X_LIMITS)]);
                 return
             end
             if ((y < this.LIFTING_Y_LIMITS(1)) || (this.LIFTING_Y_LIMITS(2) < y))
-                this.logger.warning(['Y-Position außerhalb der Limits: ', num2str(this.LIFTING_X_LIMITS)]);
+                this.logger.warning(['Y-Position ',num2str(y),' außerhalb der Limits: ', num2str(this.LIFTING_X_LIMITS)]);
                 return
             end
             this.move(vacuum_position)
@@ -158,11 +159,11 @@ classdef MovementController < handle
             x = dropping_position(1);
             y = dropping_position(2);
             if ((x < this.DROPPING_X_LIMITS(1)) || (this.DROPPING_X_LIMITS(2) < x))
-                this.logger.warning(['X-Position außerhalb der Limits: ', num2str(this.DROPPING_X_LIMITS)]);
+                this.logger.warning(['X-Position ',num2str(x),' außerhalb der Limits: ', num2str(this.DROPPING_X_LIMITS)]);
                 return
             end
             if ((y < this.DROPPING_Y_LIMITS(1)) || (this.DROPPING_Y_LIMITS(2) < y))
-                this.logger.warning(['Y-Position außerhalb der Limits: ', num2str(this.DROPPING_Y_LIMITS)]);
+                this.logger.warning(['Y-Position ',num2str(y),' außerhalb der Limits: ', num2str(this.DROPPING_Y_LIMITS)]);
                 return
             end
             this.move(dropping_position)

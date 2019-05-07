@@ -7,6 +7,8 @@ classdef Process < StateObject
         measSystem;     % Messystem inkl. R�derband, Waage und Kamera
         cANbus;
         mega;
+        handoff_request_listener;
+        handoff_accept_listener;
     end
     
     properties (SetObservable)
@@ -33,6 +35,9 @@ classdef Process < StateObject
             this.measSystem.init(this.cANbus,this.mega)
             this.isoDevice.init(this.cANbus,this.mega)
             
+            this.handoff_request_listener = addlistener(this.isoDevice.robot,'Handoff_Request',@(~,~)this.measSystem.prepareMeasurement);
+            this.handoff_accept_listener = addlistener(this.measSystem,'Handoff_Accept',@(~,~)this.isoDevice.robot.releaseObject);
+            
             this.setStateInactive('Initialisiert');
             % Da Process die Top-Level Klasse ist wird hier auch auf dem INFO Level geloggt
             this.logger.info('Prozessinitialisierung abgeschlossen'); 
@@ -54,7 +59,8 @@ classdef Process < StateObject
                 [success, error] = this.isoDevice.isolateObject();      % Versuche ein Objekt dem Messsystem zuzuf�hren
                 if (success)                                            % Falls das geklappt hat   
                     this.setStateActive('Objekt Messen');
-                    [success, error] = this.measSystem.measure();       % Versuche die Messung durchzuf�hren    
+%                     [success, error] = this.measSystem.measure();       % Versuche die Messung durchzuf�hren    
+                    disp('measuring')
                     if (~success)                                       % Falls das nicht geklappt hat
                         this.logger.warning('Fehler bei der Messung');   % gibt eine Fehlermeldung aus
                     end
