@@ -1,10 +1,12 @@
 classdef Gripper < StateObject
+    % Verwendete Module und Subklassen
     properties
         mega;   % Arduino Mega 2560
         servo1;
         servo2;
     end
     
+    % Beobachtbare Zustände
     properties(SetAccess = private, SetObservable)
         offset = 0.05;
         angle_1 = 0;
@@ -13,6 +15,7 @@ classdef Gripper < StateObject
     end
     
     methods
+        % Erstellt das Objekt
         function this = Gripper(logger)
             if nargin < 1
                 logger = [];
@@ -20,6 +23,7 @@ classdef Gripper < StateObject
             this = this@StateObject(logger);
         end
         
+        % Initialisiert das Objekt und macht es funktional
         function init(this, mega)
             try
                 if nargin == 1
@@ -57,19 +61,23 @@ classdef Gripper < StateObject
             end
         end
         
+        % Öffnet den Greifer
         function open(this)
             angle = 0;
             this.setAngles(angle, angle)
             this.setStateInactive('Offen');
         end
         
+        % Schließt den Greifer
         function close(this)
             angle = 0.60;
             this.setAngles(angle, angle)
             this.setStateInactive('Geschlossen');
         end
         
+        % Verfährt die Servos
         function setAngles(this, angle1, angle2)
+            if ~this.isReady; return; end
             diff_angle_1 = abs(this.angle_1 - angle1);
             diff_angle_2 = abs(this.angle_2 - angle2);
             writePosition(this.servo1, angle1 + this.offset);
@@ -80,25 +88,30 @@ classdef Gripper < StateObject
             this.checkContact();
         end
         
+        % Verfährt die Servos zu symmetrischen Werten
         function setAnglesSym(this, angle)
             this.setAngles(angle, angle)
         end
         
+        % Gibt den Winkel von Servo 1 zurück
         function pos = readAngle1(this)
             pos = readPosition(this.servo1) - this.offset;
             this.angle_1 = pos;
         end
         
+        % Gibt den Winkel von Servo 2 zurück
         function pos = readAngle2(this)
             pos = readPosition(this.servo2);
             this.angle_2 = pos;
         end
         
+        % Gibt die Winkel der Servos zurück
         function [pos1, pos2] = readAngles(this)
             pos1 = readAngle1(this);
             pos2 = readAngle2(this);
         end
         
+        % Verändert den Offset der Servos
         function changeOffset(this, offset)
             [a1,a2] = this.readAngles();
 
@@ -116,6 +129,7 @@ classdef Gripper < StateObject
             this.has_contact = status;
         end
         
+        % Gibt zurück, ob ein Objekt im Greifer detektiert wird
         function status = checkObject(this)
             status = ~checkContact(this);
             if status
@@ -123,12 +137,14 @@ classdef Gripper < StateObject
             end
         end
         
+        % Methode zur Zustandsbestimmung
         function updateState(this)
             if this.getState ~= this.OFFLINE
                 
             end
         end
         
+        % Reaktion des Objektes auf Zustandsänderung
         function onStateChange(this)
             if ~this.isReady()
                 

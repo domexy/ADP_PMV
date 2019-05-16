@@ -1,5 +1,5 @@
-
 classdef CANbus < StateObject
+    % Verwendete Module und Subklassen
     properties
         channel;
         msg_robot = 0;
@@ -8,7 +8,7 @@ classdef CANbus < StateObject
     end
     
     methods
-        % Konstruktor
+        % Erstellt das Objekt
         function this = CANbus(logger)
             if nargin < 1
                 logger = [];
@@ -16,6 +16,7 @@ classdef CANbus < StateObject
             this = this@StateObject(logger);
         end
         
+        % Initialisiert das Objekt und macht es funktional
         function init(this)
             try
                 this.channel = canChannel('PEAK-System','PCAN_USBBUS1');
@@ -33,24 +34,26 @@ classdef CANbus < StateObject
                this.logger.error(ME.message);
             end
         end
+        
         % Destruktor
         function delete(this)
             try
                 this.stopChannel();
             end
         end
+        
         % Kanal starten
         function startChannel(this)
             start(this.channel);
             this.channel.MessageReceivedFcn = @this.receiveMsg;
             this.channel.MessageReceivedFcnCount = 1;
-            
-
         end
+        
         % Kanal stoppen
         function stopChannel(this)
             stop(this.channel);
         end
+        
         % Nachricht senden
         function sendMsg(this, canID, data)
             % Versuche die Nachricht zu senden
@@ -64,6 +67,7 @@ classdef CANbus < StateObject
                 rethrow(ME)
             end
         end
+        
         % Nachricht empfangen
         function receiveMsg(this,ch)
             msg = receive(ch, Inf);
@@ -75,7 +79,8 @@ classdef CANbus < StateObject
                 analyseData(this,msg_2);
             end
         end
-
+        
+        % Empfangene Daten analysieren
         function analyseData(this,msg)
             switch msg.ID
                 case 256 % Nachrichten von MicroMod0 (Roboter)
@@ -148,12 +153,14 @@ classdef CANbus < StateObject
             status = bitget(this.msg_robot,5);
         end
         
+        % Methode zur Zustandsbestimmung
         function updateState(this)
             if this.getState ~= this.OFFLINE
                 
             end
         end
         
+        % Reaktion des Objektes auf Zustandsänderung
         function onStateChange(this)
             if ~this.isReady()
 

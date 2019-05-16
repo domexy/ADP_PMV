@@ -1,7 +1,8 @@
 classdef MovementController < handle
-    %MOVEMENTCONTROLLER Summary of this class goes here
-    %   Detailed explanation goes here
+    %MOVEMENTCONTROLLER Ebenen-Bewegungsmodell für den Roboterarm
     
+    % Abhängige Zustände, werden erst beim Abrufen berechnet
+    % Projeziert die aktuelle Position auf die jeweilige Ebene
     properties(SetAccess = private, Dependent)
         current_position;
         moving_position;
@@ -11,10 +12,11 @@ classdef MovementController < handle
         dropping_position;
     end
     
+    % Definierte Konstanten
     properties(Access = private, Constant)
         % Bewegungsebenen
 %         LOW_MOVING_PLANE = [447 180 0 0]; % z,rx,ry,rz
-        LOW_MOVING_PLANE = [600 180 0 0]; % z,rx,ry,rz
+        LOW_MOVING_PLANE = [447 180 0 0]; % z,rx,ry,rz
         HIGH_MOVING_PLANE = [650 135 120 0]; % z,rx,ry,rz
         VACUUM_PLANE = [57 180 0 0]; % z,rx,ry,rz
         GRIPPING_PLANE = [105 180 0 0]; % z,rx,ry,rz
@@ -43,23 +45,28 @@ classdef MovementController < handle
     end
     
     methods
+        % Erstellt das Objekt
         function this = MovementController()
-            %MOVEMENTCONTROLLER Construct an instance of this class
-            %   Detailed explanation goes here
+            
         end
+        % Initialisierung muss durch untergeordnete Klasse (Robot)
+        % vorgenommen werden
         
+        % Bewegt Roboter zur Ablageposition
         function moveToDroppingPosition(this)
             this.logger.info('Verfahre zur Ablageposition...');
             this.moveTo(this.DROPPING_XY_COORDS(1),this.DROPPING_XY_COORDS(2))
             this.setStateInactive('Ablageposition erreicht');
         end
         
+        % Bewegt Roboter zur Homeposition
         function moveToHomePosition(this)
             this.logger.info('Verfahre zur Homeposition...');
             this.moveTo(this.HOME_XY_COORDS(1),this.HOME_XY_COORDS(2))
             this.setStateInactive('Homeposition erreicht');
         end
         
+        % Verfährt den Roboter im Ebenenmodel
         function moveTo(this,x,y)
             if nargin < 2
                 y = x(2);
@@ -105,10 +112,12 @@ classdef MovementController < handle
             end
         end
         
+        % Hebt den Roboter auf Bewegungsebene
         function heaveToMovementHeight(this)
             this.move(this.moving_position)
         end
         
+        % Hebt den Roboter auf Hebeebene
         function heaveToLiftingHeight(this)
             lifting_position = this.lifting_position;
             x = lifting_position(1);
@@ -124,6 +133,7 @@ classdef MovementController < handle
             this.move(lifting_position)
         end
         
+        % Hebt den Roboter auf Greifebene
         function heaveToGrippingHeight(this)
             gripping_position = this.gripping_position;
             x = gripping_position(1);
@@ -139,6 +149,7 @@ classdef MovementController < handle
             this.move(gripping_position)
         end
         
+        % Hebt den Roboter auf Unterdruckebene
         function heaveToVacuumHeight(this)
             vacuum_position = this.vacuum_position;
             x = vacuum_position(1);
@@ -154,6 +165,7 @@ classdef MovementController < handle
             this.move(vacuum_position)
         end
         
+        % Hebt den Roboter auf Ablageebene
         function heaveToDroppingHeight(this)
             dropping_position = this.dropping_position;
             x = dropping_position(1);
@@ -193,10 +205,12 @@ classdef MovementController < handle
             this.moveToHomePosition();
         end
         
+        % Getter für current_position
         function current_position = get.current_position(this)
             current_position = this.readPose();
         end
         
+        % Getter für moving_position
         function moving_position = get.moving_position(this)
             pose = this.readPose();
             if pose(1) > this.LOW_HIGH_X_THRESHOLD % ROBOTER IST IM RAMPENNÄHE
@@ -206,21 +220,25 @@ classdef MovementController < handle
             end
         end
         
+        % Getter für vacuum_position
         function vacuum_position = get.vacuum_position(this)
             pose = this.readPose();
             vacuum_position = [pose(1:2), this.VACUUM_PLANE];
         end
         
+        % Getter für gripping_position
         function gripping_position = get.gripping_position(this)
             pose = this.readPose();
             gripping_position = [pose(1:2), this.GRIPPING_PLANE];
         end
         
+        % Getter für lifting_position
         function lifting_position = get.lifting_position(this)
             pose = this.readPose();
             lifting_position = [pose(1:2), this.LIFTING_PLANE];
         end
         
+        % Getter für dropping_position
         function dropping_position = get.dropping_position(this)
             pose = this.readPose();
             dropping_position = [pose(1:2), this.DROPPING_PLANE];

@@ -1,16 +1,18 @@
 classdef Scale < StateObject
+    % Verwendete Module und Subklassen
     properties
         serialPort;
         portID = '';    % z.B. COM7
         cANbus;
     end
     
+    % Beobachtbare Zustände
     properties(SetAccess = private, SetObservable)
         mass = 0;
     end
     
     methods
-        % Konstruktor
+        % Erstellt das Objekt
         function this = Scale(logger)
             if nargin < 1
                 logger = [];
@@ -18,6 +20,7 @@ classdef Scale < StateObject
             this = this@StateObject(logger);
         end
         
+        % Initialisiert das Objekt und macht es funktional
         function init(this,portID, cANbus)
             try
                 this.portID = portID;
@@ -30,6 +33,7 @@ classdef Scale < StateObject
                 this.logger.error(ME.message);
             end
         end
+        
         % Verbindung zur Waage herstellen
         function connect(this)
             % alle bestehenden Verbindungen zu COM-Ports schlieï¿½en
@@ -48,6 +52,7 @@ classdef Scale < StateObject
             fopen(this.serialPort);
             this.logger.info('Verbindung zur Waage hergestellt');
         end
+        
         % Verbindung zur Waage trennen
         function disconnect(this)
             % Verbindung schlieï¿½en
@@ -80,6 +85,7 @@ classdef Scale < StateObject
             
         end
         
+        % Auf Masse-Nachricht von der Waage warten
         function status = awaitMass(this)
             this.setStateActive('Masse bestimmen');
             timer = tic;
@@ -106,6 +112,7 @@ classdef Scale < StateObject
             this.setStateInactive('Betriebsbereit');
         end
         
+        % Methode zur Zustandsbestimmung
         function updateState(this)
             try
                 if this.getState() ~= this.OFFLINE
@@ -120,14 +127,12 @@ classdef Scale < StateObject
             end
         end
         
+        % Reaktion des Objektes auf Zustandsänderung
         function onStateChange(this)
             if ~this.isReady()
                 
             end
         end
-    end
-    
-    events
     end
 end
 

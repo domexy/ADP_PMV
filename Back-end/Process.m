@@ -1,23 +1,28 @@
 classdef Process < StateObject
-    % Process wird als ï¿½berklasse fï¿½r den gesamten Prozess in der Messanlage verwendet 
+    % Process wird als Überklasse für den gesamten Prozess in der Messanlage verwendet 
     
-    
+    % Verwendete Module und Subklassen
     properties        
-        isoDevice;      % Vereinzelungsanlage inkl. Fï¿½rderband, Objekterkennung und Roboter
-        measSystem;     % Messystem inkl. Rï¿½derband, Waage und Kamera
+        isoDevice;      % Vereinzelungsanlage inkl. Förderband, Objekterkennung und Roboter
+        measSystem;     % Messystem inkl. Förderband, Waage und Kamera
         cANbus;
         mega;
+    end
+    
+    % Für den Nutzer nicht sichtbare EventListener
+    properties (Hidden)
         handoff_request_listener;
         handoff_accept_listener;
     end
     
+    % Beobachtbare Zustände
     properties (SetObservable)
         remaining_iterations = 0;
     end
     
     methods
+        % Erstellt das Objekt
         function this = Process(logger)   
-            % Erzeugt eine Instanz der Klasse Process
             if nargin < 1
                 logger = [];
             end
@@ -27,6 +32,7 @@ classdef Process < StateObject
             this.isoDevice = IsolationDevice(this.logger);
         end
         
+        % Initialisiert das Objekt und macht es funktional
         function init(this)
             this.logger.info('Prozessinitialisierung gestartet...'); 
             % Baut Verbindung zum Prozess selbst auf
@@ -48,18 +54,19 @@ classdef Process < StateObject
             end
         end
         
+        % Führt den Prozess für eine Anzahl von Iterationen aus
         function run(this, num_iterations)
             if nargin < 2
                 num_iterations = 1;
             end
             this.remaining_iterations = num_iterations;
             this.logger.info(['Prozess gestartet für ', num2str(num_iterations) ,' Iterationen']);
-            for i=1:num_iterations
+            while this.remaining_iterations > 0
                 this.setStateActive('Objekt Isolieren');
                 [success, error] = this.isoDevice.isolateObject();      % Versuche ein Objekt dem Messsystem zuzufï¿½hren
                 if (success)                                            % Falls das geklappt hat   
                     this.setStateActive('Objekt Messen');
-%                     [success, error] = this.measSystem.measure();       % Versuche die Messung durchzufï¿½hren    
+                    [success, error] = this.measSystem.measure();       % Versuche die Messung durchzufï¿½hren    
                     disp('measuring')
                     if (~success)                                       % Falls das nicht geklappt hat
                         this.logger.warning('Fehler bei der Messung');   % gibt eine Fehlermeldung aus
@@ -67,13 +74,14 @@ classdef Process < StateObject
                 else                                                    % Falls die Zufï¿½hrung nicht geklappt hat
                     this.logger.warning('Fehler bei der Vereinzelung');  % gibt eine Fehlermeldung aus    
                 end
+                this.logger.info(['Iteration ', num2str(this.remaining_iterations) ,' abgeschlossen']);
                 this.remaining_iterations = this.remaining_iterations - 1;
-                this.logger.info(['Iteration ', num2str(i) ,' abgeschlossen']);
             end
             this.setStateInactive('Betriebsbereit');
             this.logger.info(['Prozess abgeschlossen']);
         end
         
+        % Methode zur Zustandsbestimmung
         function updateState(this)
             try
                 if this.getState() ~= this.OFFLINE
@@ -90,6 +98,7 @@ classdef Process < StateObject
             end
         end
         
+        % Reaktion des Objektes auf Zustandsänderung
         function onStateChange(this)
             if ~this.isReady()
 

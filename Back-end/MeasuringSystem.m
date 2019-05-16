@@ -1,4 +1,5 @@
 classdef MeasuringSystem < StateObject
+    % Verwendete Module und Subklassen
     properties
         cANbus;
         mega;
@@ -10,12 +11,14 @@ classdef MeasuringSystem < StateObject
         servoVorhangRear;
     end
     
+    % Für den Nutzer nicht sichtbare EventListener
     properties(Hidden)
         listenerStart;
         listenerLightBarrierOn;
         listenerLightBarrierOff;
     end
     
+    % Beobachtbare Zustände
     properties(SetAccess = private, SetObservable)
         gate_position = 0;
         light_barrier_blocked = 0;
@@ -23,7 +26,7 @@ classdef MeasuringSystem < StateObject
     end
     
      methods
-        % Konstruktor
+        % Erstellt das Objekt
         function this = MeasuringSystem(logger)
             if nargin < 1
                 logger = [];
@@ -35,6 +38,7 @@ classdef MeasuringSystem < StateObject
             this.cam = Camera(this.logger);
         end
         
+        % Initialisiert das Objekt und macht es funktional
         function init(this,cANbus,mega)
             this.cANbus = cANbus;
             this.mega = mega;
@@ -52,36 +56,44 @@ classdef MeasuringSystem < StateObject
             this.setStateInactive('Initialisiert');
         end
         
+        % Destruktor
         function delete(this)
             delete(this.listenerStart);
             delete(this.listenerLightBarrierOn);
             delete(this.listenerLightBarrierOff);
         end
         
+        % Bereitet das System auf ein Papierobjekt vor (Methode wird durch
+        % EventListener ausgelöst
+        % Robot -> "Handoff_Request" -> Process -> prepareMeasurement
         function prepareMeasurement(this,~,~,~,~)
             this.setStateActive('Messung vorbereiten...');
             this.openGate();
-%             this.scale.zero();
+            this.scale.zero();
             this.weighingBelt.start();
 %             waitfor(this,'light_barrier_blocked',0)
             this.setStateActive('Akzeptiere Probe...');
-            notify(this,'Handoff_Accept');
+            notify(this,'Handoff_Accept'); % Informiert Listener, dass das System aufnahmebereit ist
+            % Hier muss das Timing eingestellt werden, damit die Waage zum
+            % richtigen Zeitpunkt gestoppt wird
 %             pause(6)
 %             waitfor(this,'light_barrier_blocked',1)
 %             waitfor(this,'light_barrier_blocked',0)
-%             this.weighingBelt.stop();
-            this.scale.awaitMass(); 
+            pause(2)
+            this.weighingBelt.stop();
+%             this.scale.awaitMass(); 
             
             this.setStateInactive('Probe erhalten...');
         end
         
+        % Vermisst das Papierobjekt
         function [success, error] = measure(this)
             success = 1;
             error = 0;
             this.ready_for_handoff = 0; % Messzelle verweigert sich neuen Proben neue Probe
             this.setStateActive('Messung gestartet...');
             this.closeGate();
-%             this.cam.takePhotos();;
+%             this.cam.takePhotos();
             pause(2)
             this.setStateInactive('Messung beendet');
             this.setStateActive('Probe auswerfen...');
@@ -90,14 +102,17 @@ classdef MeasuringSystem < StateObject
             this.setStateInactive('Betriebsbereit');
         end
         
+        % Startet das Förderband
         function startConvBelt(this,~,~)
             this.weighingBelt.start();
         end
         
+        % Stoppt das Förderband
         function stopConvBelt(this,~,~)
             this.weighingBelt.stop();
         end
         
+        % Verfährt das Tor/Vorhang
         function moveGate(this, position)
             writePosition(this.servoVorhangRear,1-position)
             writePosition(this.servoVorhangFront,position*0.995) % Keine Ahnung, warum nur dieser Servo keine 1 als Wert akzeptiert... ist aber so
@@ -105,24 +120,29 @@ classdef MeasuringSystem < StateObject
             this.logger.debug(['Messzellentore Position: ', num2str(position)])
         end
         
+        % Öffnet das Tor/Vorhang
         function openGate(this)
             this.moveGate(0)
             this.logger.info('Messzellentore geöffnet')
         end
         
+        % Schließt das Tor/Vorhang
         function closeGate(this)
             this.moveGate(1)
             this.logger.info('Messzellentore geschlossen')
         end
         
+        % Setter für light_barrier_blocked, für EventListener
         function setLightBarrierOn(this,~,~)
             this.light_barrier_blocked = 1;
         end
         
+        % Setter für light_barrier_blocked, für EventListener
         function setLightBarrierOff(this,~,~)
             this.light_barrier_blocked = 0;
         end
-                
+           
+        % Methode zur Zustandsbestimmung
         function updateState(this)
             try
                 if this.getState() ~= this.OFFLINE
@@ -140,6 +160,7 @@ classdef MeasuringSystem < StateObject
             end
         end
         
+        % Reaktion des Objektes auf Zustandsänderung
         function onStateChange(this)
             if ~this.isReady()
 
@@ -147,6 +168,7 @@ classdef MeasuringSystem < StateObject
         end
      end
      
+     % Durch das Objekt ausgelöste Ereignisse
      events
          Handoff_Accept
      end

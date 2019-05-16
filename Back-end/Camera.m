@@ -1,10 +1,12 @@
 classdef Camera < StateObject
+    % Verwendete Module und Subklassen
     properties
         light  
         cam
         src
     end
     
+    % Beobachtbare Zustände
     properties(SetAccess = private, SetObservable)
         img = []
         imgRGB = []
@@ -12,6 +14,7 @@ classdef Camera < StateObject
     end
     
     methods
+        % Erstellt das Objekt
         function this = Camera(logger)
             if nargin < 1
                 logger = [];
@@ -21,6 +24,7 @@ classdef Camera < StateObject
             this.light = Lighting(this.logger);
         end
         
+        % Initialisiert das Objekt und macht es funktional
         function init(this)
             try
                 % Kamera initalisieren
@@ -34,7 +38,6 @@ classdef Camera < StateObject
                 this.src.ExposureTimeAbs = 50000; 
                 % Verbindung zur Beleuchtung herstellen
                 this.light.init('LPT1');
-%                 this.light.setLightOff();
                 
                 this.setStateInactive('Initialisiert');
             catch ME
@@ -49,7 +52,7 @@ classdef Camera < StateObject
             this.logger.debug('Foto aufgenommen');
         end
         
-        % Ein weiï¿½es und ein UV-Foto aufnehmen
+        % Ein weißes und ein UV-Foto aufnehmen
         function takePhotos(this)
             this.setStateActive('RGB-Foto aufnehmen');
             this.light.setLightWhite();
@@ -57,7 +60,7 @@ classdef Camera < StateObject
             this.imgRGB = this.requestFoto();
             this.setStateActive('UV-Foto aufnehmen');
             this.light.setLightUV();
-            pause(1)
+            pause(3)
             this.imgUV = this.requestFoto();
             this.light.setLightOff();
             pause(1)
@@ -69,12 +72,14 @@ classdef Camera < StateObject
             this.setStateInactive('Betriebsbereit');
         end
         
+        % Methode zur Zustandsbestimmung
         function updateState(this)
             if this.getState ~= this.OFFLINE
                 
             end
         end
         
+        % Reaktion des Objektes auf Zustandsänderung
         function onStateChange(this)
             if ~this.isReady()
                 

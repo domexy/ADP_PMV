@@ -1,13 +1,14 @@
 classdef Robot < StateObject & MovementController
+    % Verwendete Module und Subklassen
     properties
         ur5
         objDetection
         cANbus;
         gripper;
         %         homePose = [26 -290 447 180 0 0];
-        roa = [58 429 307 194]; %Region of Access = Greifbereich
     end
     
+    % Beobachtbare Zustände
     properties(SetAccess = private, SetObservable)
         pause_length = 0.125;
         speed = 0.2;
@@ -21,7 +22,7 @@ classdef Robot < StateObject & MovementController
     end
     
     methods
-        % Konstruktor fï¿½r UR5-Roboter
+        % Erstellt das Objekt
         function this = Robot(logger)
             if nargin < 1
                 logger = [];
@@ -32,6 +33,7 @@ classdef Robot < StateObject & MovementController
             this.gripper = Gripper(this.logger);
         end
         
+        % Initialisiert das Objekt und macht es funktional
         function init(this,cANbus, mega)
             try
                 if nargin < 3
@@ -64,7 +66,7 @@ classdef Robot < StateObject & MovementController
             end
         end
                 
-        % Objekt in Anlage ablegen
+        % Objekt aufnehmen und in Anlage ablegen
         function success = feedObject(this)
             this.setStateActive('Objektzuführung ...');
             success = 1;
@@ -99,7 +101,7 @@ classdef Robot < StateObject & MovementController
         
         % Versuche Objekt zu heben
         % Parameter:    x, y des Objekts in Roboter-Koordinaten
-        % Rï¿½ckgabe:     status = 1, wenn Objekt gehoben werden konnte,
+        % Rückgabe:     status = 1, wenn Objekt gehoben werden konnte,
         %               status = 0, wenn Objekt nicht gehoben werden konnte
         function status = liftObject(this, xObj, yObj)
             this.setStateActive('Hebe Objekt...');
@@ -116,6 +118,7 @@ classdef Robot < StateObject & MovementController
             this.setStateInactive('Objekt angehoben');
         end
         
+        % Versuch Objekt mit Unterdruck aufzunehmen
         function status = pickUpVacuum(this)
             this.heaveToVacuumHeight();
             this.activateVacuum();           % Schalte Vakuum ein
@@ -131,17 +134,18 @@ classdef Robot < StateObject & MovementController
             end
         end
         
+        % Versuch Objekt mit Greifer aufzunehmen
         function status = pickUpGripper(this)
             this.gripper.open();
             this.heaveToGrippingHeight();
-            this.gripper.close();           % Schalte Vakuum ein
+            this.gripper.close();           % Schließe Greifer
             this.heaveToMovementHeight;        % Hebe Objekt hoch
-            if this.gripper.checkObject()   % Falls Objekt noch am Sauger hï¿½ngt
+            if this.gripper.checkObject()   % Falls Objekt noch am Greifer hängt
                 status = 1;                 % Anheben hat funktioniert
                 this.logger.info('Greifer-Anheben erfolgreich');
                 return;                      % Schleife abbrechen
-            else                            % falls Objekt nicht am Sauger hï¿½ngt
-                this.gripper.open();       % Vakuum ausschalten
+            else                            % falls Objekt nicht am Greifer hängt
+                this.gripper.open();       % Öffne Greifer
                 status = 0;                 % Anheben hat nicht funkioniert
                 this.logger.warning('Greifer-Anheben fehlgeschlagen');
             end
@@ -165,11 +169,14 @@ classdef Robot < StateObject & MovementController
             this.setStateInactive('Objekt abgelegt');
         end
         
+        % Objekt freigeben, durch EventListener ausgelöst
+        % MeasuringSystem -> "Handoff_Accept" -> Process -> releaseObject
         function releaseObject(this,~,~,~,~)
             this.gripper.open();
             this.deactivateVacuum();
         end
         
+        % Überprüft ob der Roboter ein Papierobjekt hat
         function status = hasObject(this)
             if this.checkPressureSensor()
                status = 1;
@@ -180,10 +187,10 @@ classdef Robot < StateObject & MovementController
             end
         end
         
-        % Unterdrucksensor ï¿½berprï¿½fen, ob Objekt an Sauger hï¿½ngt
+        % Unterdrucksensor überprüfen, ob Objekt an Sauger hängt
         function status = checkPressureSensor(this)
             % Hier sollte der Drucksensor ausgelesen werden
-            % 1: Objekt hï¿½ngt am Sauger    0: Objekt hï¿½ngt nicht am Sauger
+            % 1: Objekt hängt am Sauger    0: Objekt hängt nicht am Sauger
             status = bitget(this.cANbus.msg_robot,4);
             
             if ~status
@@ -191,19 +198,20 @@ classdef Robot < StateObject & MovementController
             end
         end
         
-        % Unterdrucksensor ï¿½berprï¿½fen, ob Objekt an Sauger hï¿½ngt
+        % Lichtschranke am Förderband
         function status = checkLightBarrier1(this)
-            % Hier sollte der Drucksensor ausgelesen werden
-            % 1: Objekt hï¿½ngt am Sauger    0: Objekt hï¿½ngt nicht am Sauger
             status = bitget(this.cANbus.msg_robot,5);
         end
         
+        % Aktiviert Unterdruck
         function activateVacuum(this)
+            if ~this.isReady; return; end
             this.cANbus.sendMsg(515,1);
             this.logger.info('Unterdruck aktiviert');
             this.vacuum_active = 1;
         end
         
+        % Deaktiviert Unterdruck
         function deactivateVacuum(this)
             this.cANbus.sendMsg(515,0);
             this.logger.info('Unterdruck deaktiviert');
@@ -217,10 +225,12 @@ classdef Robot < StateObject & MovementController
         
         % Nachricht senden, dass Messsystem mit dem Messprozess beginnen
         % kann
+        % VERALTET
         function startMeasurement(this)
             
         end
         
+        % Methode zur Zustandsbestimmung
         function updateState(this)
             try
                 if this.getState() ~= this.OFFLINE
@@ -237,6 +247,7 @@ classdef Robot < StateObject & MovementController
             end
         end
         
+        % Reaktion des Objektes auf Zustandsänderung
         function onStateChange(this)
             if ~this.isReady()
                 
@@ -357,6 +368,7 @@ classdef Robot < StateObject & MovementController
         end
     end
     
+    % Ereignisse, die durch das Objekt ausgelöst werden
     events
         Handoff_Request
     end

@@ -1,4 +1,5 @@
 classdef IsolationDevice < StateObject
+    % Verwendete Module und Subklassen
     properties
         robot;
         convBelt;
@@ -7,16 +8,19 @@ classdef IsolationDevice < StateObject
         drumFeeder;
     end
     
+    % Für den Nutzer nicht sichtbare EventListener
     properties(Hidden)
         listenerLightBarrierOn;
         listenerLightBarrierOff;
     end
     
+    % Beobachtbare Zustände
     properties(SetAccess = private, SetObservable)
         light_barrier_blocked = 0;
     end
     
     methods
+        % Erstellt das Objekt
         function this = IsolationDevice(logger)
             if nargin < 1
                 logger = [];
@@ -28,6 +32,7 @@ classdef IsolationDevice < StateObject
             this.drumFeeder = DrumFeeder(this.logger);
         end
         
+        % Initialisiert das Objekt und macht es funktional
         function init(this,cANbus,mega)
             try
                 this.cANbus = cANbus;
@@ -48,7 +53,7 @@ classdef IsolationDevice < StateObject
         end
         
         
-        % Kompletter Isolationsvorgang fï¿½r ein Objekt
+        % Kompletter Isolationsvorgang für ein Objekt
         function [success, error] = isolateObject(this)
             success = 1;
             error = 0;
@@ -60,6 +65,7 @@ classdef IsolationDevice < StateObject
                     error = 'Timeout: Lichtschranke1';
                 end
                 this.convBelt.stop();
+                this.convBelt.moveObjectOntoTable();
             end
             pause(2)
             frame = this.robot.objDetection.cam.snapshot();
@@ -89,14 +95,17 @@ classdef IsolationDevice < StateObject
             end
         end
         
+        % Setter für light_barrier_blocked, bedingt durch EventListener
         function setLightBarrierOn(this,~,~)
             this.light_barrier_blocked = 1;
         end
         
+        % Setter für light_barrier_blocked, bedingt durch EventListener
         function setLightBarrierOff(this,~,~)
             this.light_barrier_blocked = 0;
         end
         
+        % Methode zur Zustandsbestimmung
         function updateState(this)
             try
                 if this.getState() ~= this.OFFLINE
@@ -114,6 +123,7 @@ classdef IsolationDevice < StateObject
             end
         end
         
+        % Reaktion des Objektes auf Zustandsänderung
         function onStateChange(this)
             if ~this.isReady()
 

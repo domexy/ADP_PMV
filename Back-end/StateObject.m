@@ -1,15 +1,20 @@
 classdef StateObject < handle
-    %BASEOBJECT Summary of this class goes here
-    %   Detailed explanation goes here
+    %STATEOBJECT Basis Klasse für alle Anlagenklassen
+    %Muss an Anlagenklasse vererbt werden und diese muss den
+    %Superkonstruktor aufrufen
+    
+    % Verwendete Module und Subklassen
     properties
         logger;
     end
     
+    % Beobachtbare Zustände
     properties (SetAccess = private, SetObservable)
         state = 1;
-        state_description = '';
+        state_description = '-OFFLINE-';
     end
     
+    % Definierte Konstanten
     properties (Constant, Hidden)
         OFFLINE = 1;    % Objekt ist Matlabseitig initialisiert, hat jedoch noch keine Verbindung zum physischen Objekt
         INACTIVE = 2;   % Objekt ist Einsatzbereit und hat keinen Auftrag
@@ -28,6 +33,7 @@ classdef StateObject < handle
     end
     
     methods
+        % Erstellt das Objekt
         function this = StateObject(logger)
             if isempty(logger)
                 this.logger.debug = @disp;
@@ -40,54 +46,20 @@ classdef StateObject < handle
                     this.logger.addToForbiddenFiles();
                 end
             end
-            this.setStateOffline();
+%             this.setStateOffline();
         end
         
-        function addComponent(this, component_name, component)
-            isStateObject = false;
-            parents = superclasses(component);
-            for i=1:length(parents)
-                if strcmp(parents{i},class('StateObject'))
-                   isStateObject = true; 
-                end
-            end
-            if isStateObject
-                this.components.(component_name) = component;
-            else
-               this.logger.warning([component_name, ' ist keine Unterklasse von StateObject']); 
-            end
-        end
-        
+        % Getter für den Zustand
         function state = getState(this)
             state = this.state;
         end
-        
-%         function state = checkState(this)
-%             self_state = this.checkSelfState();
-%             component_states = this.checkComponentStates();
-%             if self_state == this.ERROR
-%                 
-%             elseif self_state ~= this.OFFLINE
-%                 if max(component_states) > self_state
-%                     this.setState(max(component_states), '
-%                 end    
-%             else max(component_states) == this.ERROR
-%                 this.setStateError('Fehler einer Komponente');
-%             end
-%         end
-%         
-%         function states = checkComponentStates(this)
-%             states = [];
-%             fields = fieldsnames(this.components);
-%             for i = 1:length(fields) 
-%                 states(i) = this.components.(fields{i}).checkSelfState;
-%             end
-%         end
-        
+
+        % Getter für Zustandsbeschreibung
         function state_description = getStateDescription(this)
             state_description = this.state_description;
         end
         
+        % Setzt den Zustand auf Offline
         function setStateOffline(this, state_description)
             if nargin < 2
                state_description = '-Offline-'; 
@@ -95,6 +67,7 @@ classdef StateObject < handle
             this.setState(this.OFFLINE, state_description);
         end
         
+        % Setzt den Zustand auf Inaktiv
         function setStateInactive(this, state_description)
             if nargin < 2
                state_description = '-Inactive-'; 
@@ -102,6 +75,7 @@ classdef StateObject < handle
             this.setState(this.INACTIVE, state_description);
         end
         
+        % Setzt den Zustand auf Aktiv
         function setStateActive(this, state_description)
             if nargin < 2
                state_description = '-Active-'; 
@@ -109,6 +83,7 @@ classdef StateObject < handle
             this.setState(this.ACTIVE, state_description);
         end
         
+        % Setzt den Zustand auf Unbekannt
         function setStateUnknown(this, state_description)
             if nargin < 2
                state_description = '-Unknown-'; 
@@ -116,6 +91,7 @@ classdef StateObject < handle
             this.setState(this.UNKOWN, state_description);
         end
         
+        % Setzt den Zustand auf Gestoppt
         function setStateStopped(this, state_description)
             if nargin < 2
                state_description = '-Stopped-'; 
@@ -123,6 +99,7 @@ classdef StateObject < handle
                 this.setState(this.STOPPED, state_description);
         end
         
+        % Setzt den Zustand auf Gestört
         function setStateError(this, state_description)
             if nargin < 2
                state_description = '-Error-'; 
@@ -130,12 +107,14 @@ classdef StateObject < handle
                 this.setState(this.ERROR, state_description);
         end
         
+        % Verändert (falls neu) den Zustand auf einen anderen
         function changeState(this, state, state_description)
             if this.getState() ~= state
                this.setState(state, state_description)
             end
         end
         
+        % Verändert (falls neu) den Zustand auf Offline
         function changeStateOffline(this, state_description)
             if nargin < 2
                state_description = '-Offline-'; 
@@ -143,6 +122,7 @@ classdef StateObject < handle
             this.changeState(this.OFFLINE, state_description);
         end
         
+        % Verändert (falls neu) den Zustand auf Inaktiv
         function changeStateInactive(this, state_description)
             if nargin < 2
                state_description = '-Inactive-'; 
@@ -150,6 +130,7 @@ classdef StateObject < handle
             this.changeState(this.INACTIVE, state_description);
         end
         
+        % Verändert (falls neu) den Zustand auf Aktiv
         function changeStateActive(this, state_description)
             if nargin < 2
                state_description = '-Active-'; 
@@ -157,6 +138,7 @@ classdef StateObject < handle
             this.changeState(this.ACTIVE, state_description);
         end
         
+        % Verändert (falls neu) den Zustand auf Unbekannt
         function changeStateUnknown(this, state_description)
             if nargin < 2
                state_description = '-Unknown-'; 
@@ -164,6 +146,7 @@ classdef StateObject < handle
             this.changeState(this.UNKOWN, state_description);
         end
         
+        % Verändert (falls neu) den Zustand auf Gestoppt
         function changeStateStopped(this, state_description)
             if nargin < 2
                state_description = '-Stopped-'; 
@@ -171,6 +154,7 @@ classdef StateObject < handle
             this.changeState(this.STOPPED, state_description);
         end
         
+        % Verändert (falls neu) den Zustand auf Gestört
         function changeStateError(this, state_description)
             if nargin < 2
                state_description = '-Error-'; 
@@ -178,25 +162,69 @@ classdef StateObject < handle
             this.changeState(this.ERROR, state_description);
         end
         
+        % Gibt an ob das Objekt in einem Einsatzbereiten Zustand ist
         function ready = isReady(this)
             ready = any(this.getState() == this.READY_STATES);
         end
     end
     
+    % Für den Nutzer nicht zugängliche Methoden
     methods (Access = private)
+        % Setzt den Zustand, falls ein erlaubter Übergang vorliegt
         function setState(this,state, state_description)
-            state_change_message = [...
-                this.STATE_STRINGS{this.state}, '(', this.state_description,')'...
-                ' -> ', this.STATE_STRINGS{state}, '(', state_description,')'];
-            this.onStateChange();
-            this.state_description = state_description;
-            % state erst nach state_description, da event_listeners direkt
-            % auf state achten aber nur indirekt (via state) auf
-            % state_description zugreifen. 
-            % Sonst ist beim event_listener zugriff noch die alte
-            % state_description gesetzt.
-            this.state = state;
-            this.logger.debug(state_change_message);
+            if isAllowedStateChange(this.state, state)
+                state_change_message = [...
+                    this.STATE_STRINGS{this.state}, '(', this.state_description,')'...
+                    ' -> ', this.STATE_STRINGS{state}, '(', state_description,')'];
+                this.onStateChange();
+                this.state_description = state_description;
+                % state erst nach state_description, da event_listeners direkt
+                % auf state achten aber nur indirekt (via state) auf
+                % state_description zugreifen. 
+                % Sonst ist beim event_listener zugriff noch die alte
+                % state_description gesetzt.
+                this.state = state;
+                this.logger.debug(state_change_message);
+            else
+                this.logger.warning(['Zustandsübergang von ', this.STATE_STRINGS{this.state},' nach ' this.STATE_STRINGS{state},' nicht erlaubt!']);
+            end
+        end
+        
+        function is_allowed = isAllowedStateChange(this, from_state, to_state)
+            is_allowed = true;
+            switch from_state
+                case this.OFFLINE
+                    if to_state ~= this.INACTIVE
+                        is_allowed = false;
+                    end
+                case this.INACTIVE
+                    
+                case this.ACTIVE
+                    if to_state == this.OFFLINE
+                        is_allowed = false;
+                    end
+                case this.UNKOWN
+                    if to_state == this.OFFLINE
+                        is_allowed = false;
+                    end
+                    if to_state == this.ACTIVE
+                        is_allowed = false;
+                    end
+                case this.STOPPED
+                    if to_state == this.OFFLINE
+                        is_allowed = false;
+                    end
+                    if to_state == this.INACTIVE
+                        is_allowed = false;
+                    end
+                    if to_state == this.ACTIVE
+                        is_allowed = false;
+                    end
+                case this.ERROR
+                    if to_state ~= this.UNKNOWN
+                        is_allowed = false;
+                    end
+            end
         end
     end
     

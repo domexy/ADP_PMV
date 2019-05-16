@@ -1,19 +1,22 @@
 classdef ObjectDetection < StateObject
+    % Verwendete Module und Subklassen
     properties
         cam
         cam2
+        % Diese Attribute wurden aus historischen Gründen hier belassen
         roi = [58 429 307 194];
         roiMask
         imgSize
         small_object_threshold = 1000;
     end
     
+    % Beobachtbare Zustände
     properties(SetAccess = private, SetObservable)
         frame
     end
     
     methods
-        % Konstruktor
+        % Erstellt das Objekt
         function this = ObjectDetection(logger)
             if nargin < 1
                 logger = [];
@@ -21,6 +24,7 @@ classdef ObjectDetection < StateObject
             this = this@StateObject(logger);
         end
         
+        % Initialisiert das Objekt und macht es funktional
         function init(this)
             try
                 this.cam = webcam('C922 Pro Stream Webcam');
@@ -40,6 +44,7 @@ classdef ObjectDetection < StateObject
             end
         end
         
+        % Stellt die Beleuchtung ein
         function autoExposure(this)
             this.setStateActive('Belichtungszeit einstellen...');
             for i=-9:-2
@@ -65,17 +70,17 @@ classdef ObjectDetection < StateObject
             % Umwandlung in Biï¿½rbild
             frame3 = im2bw(frame2,0.27);
             
-            % Binï¿½rbild maskieren, sodass nur der ROI betrachtet wird
+            % Binärbild maskieren, sodass nur der ROI betrachtet wird
             frame4 = frame3 .* this.roiMask;
 
-            % schwarze Lï¿½cher in Binï¿½rbild entfernen
+            % schwarze Löcher in Binärbild entfernen
             frame5 = logical(imfill(frame4,'holes'));
             
             pic = frame5;
             this.setStateInactive('Foto aufnehmen beendet');
         end
         
-        % Maske fï¿½r Region of Interest erstellen
+        % Maske für Region of Interest erstellen
         function mask = createRoiMask(this)
             mask = zeros(this.imgSize(1),this.imgSize(2));
             mask(this.roi(1):(this.roi(1)+this.roi(3)),this.roi(2):(this.roi(2)+this.roi(4))) = 1;
@@ -188,26 +193,25 @@ classdef ObjectDetection < StateObject
             this.logger.info(['Bild: [',num2str(px),', ',num2str(py),'] -> Roboter: [',num2str(x),', ',num2str(y),']' ]);
         end
         
+        % Umkehrfunktion von pixelToCoords
         function [px, py] = coordsToPixel(this,x,y)
-            % Umkehrfunktion von pixelToCoords
             px = (x+164.7)/-1.591;
             py = (y+841.3)/1.569;
             this.logger.info(['Roboter: [',num2str(x),', ',num2str(y),'] -> Bild: [',num2str(px),', ',num2str(py),']']);
         end
         
+        % Methode zur Zustandsbestimmung
         function updateState(this)
             if this.getState ~= this.OFFLINE
                 
             end
         end
         
+        % Reaktion des Objektes auf Zustandsänderung
         function onStateChange(this)
             if ~this.isReady()
 
             end
         end
-    end
-    
-    events
     end
 end
