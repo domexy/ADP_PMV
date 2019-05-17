@@ -1,4 +1,6 @@
 function addProcessGuiBindings(app)
+% FÜGT BINDINGS ZUR GUI HINZU
+
             binding_logger = Logger.Logger();
             binding_logger.log_file_active = true;
             binding_logger.log_file_level = 1;
@@ -11,7 +13,6 @@ function addProcessGuiBindings(app)
 %% STATELAMP
             state_lamp_bm = Binding.BindingManager('State_Lamps',binding_logger);
             app.binding_managers.state_lamps = state_lamp_bm;
-%             state_lamp_bm.timer_target_period = 1;
 
             state_lamp_bm.addBinding(...
                 Binding.StateLampBinding(...
@@ -60,8 +61,6 @@ function addProcessGuiBindings(app)
                 Binding.PropertyBinding(...
                 app.process, 'remaining_iterations', app.RemainingSamples_EditField, 'Value'));
             
-%             state_lamp_bm.timer.start();
-
         addIsoDeviceGuiBindings(app,binding_logger);
         addMeasSystemGuiBindings(app,binding_logger);
 end

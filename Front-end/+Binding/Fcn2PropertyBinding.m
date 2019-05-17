@@ -1,4 +1,6 @@
 classdef Fcn2PropertyBinding < Binding.Binding  
+    % Binding um das Auswertergebnis einer Funktion auf ein Objektattribut
+    % zu übertragen.
     properties(Access = public)
         source_fcn_handle
         target_object
@@ -6,6 +8,10 @@ classdef Fcn2PropertyBinding < Binding.Binding
     end
     
     methods
+        % Konstruktor
+        % Akzeptiert:
+        %   1 Function-handle +
+        %   n * ( 1 Zielobjekt + 1 Zielattributnamen )
         function this = Fcn2PropertyBinding(source_fcn_handle,target_object,target_prop_name,varargin)
             this.source_fcn_handle = source_fcn_handle;
             this.target_object = {target_object};
@@ -19,6 +25,7 @@ classdef Fcn2PropertyBinding < Binding.Binding
             end
         end
         
+        % Übertragungsfunktion
         function eval(this)
             source = this.source_fcn_handle();
             for i = 1:length(this.target_object)

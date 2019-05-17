@@ -1,7 +1,8 @@
 classdef BindingManager < handle
-    %BINDINGMANAGER Summary of this class goes here
-    %   Detailed explanation goes here
+    %BINDINGMANAGER Framework zum Gruppieren von Bindings (Besonders
+    % nützlich, falls die Bindings Zeit-(Timer)gesteuert sein sollen
     
+    % Nach außen sichtbare Attribute
     properties
         bindings = {};
         timer_target_period = 2;
@@ -11,6 +12,7 @@ classdef BindingManager < handle
         name;
     end
     
+    % Interne Attribute
     properties (Access = private)
        check_counter = 0;
        check_threshold = 10;
@@ -37,6 +39,9 @@ classdef BindingManager < handle
             this.timer.ErrorFcn = @(~,~)this.restart;
         end
                 
+        % Setzt aktuelle Aktualisierungsperiode, nicht aber die
+        % Zielperiodendauer, die wird über das Attribut timer_target_period
+        % direkt beinflusst
         function setPeriod(this, period)
             period = round(period,3);
             if strcmp(this.timer.Running,'on')
@@ -54,26 +59,32 @@ classdef BindingManager < handle
             end
         end
         
+        % Startet die Timerfunktion des BindingManagers
         function start(this)
             this.check_counter = 0;
             this.timer.start();
             this.logger.info(['BindingMananger ', this.name, ' started'])
         end
         
+        % Stoppt die Timerfunktion des BindingManagers
         function stop(this)
             stop(this.timer);
             this.logger.info(['BindingMananger ', this.name, ' started'])
         end        
         
+        % Startet die Timerfunktion des BindingManagers neu
+        % (Verwendet falls es zum Fehler in der Auführung kommt)
         function restart(this)
             pause(this.timer_limited_period)
             this.timer.start();
         end
         
+        % Fügt ein neues Binding (Übertragungsfunktion hinzu)
         function addBinding(this, binding)
             this.bindings = [this.bindings(:)', {binding}];
         end
         
+        % Führt alle Bindings aus
         function evalBindings(this)
             %Überprüfe ob Periodenlänge Systemverträglich ist
             this.checkPeriod()
@@ -87,8 +98,13 @@ classdef BindingManager < handle
             end
         end
     end
-    
+   
+    % Methoden zur internen Verwendung
     methods (Access=private)
+        % Überprüft, ob die Zielperiode erreicht wurde, oder ob die
+        % aktuelle Periode einhaltbar ist.
+        % Falls nicht der Fall, wird die aktuelle Periode vergrößert, oder
+        % verringert
         function checkPeriod(this)
 %             this.logger.debug(['BindingMananger ', this.name, ': ',num2str(this.check_counter),'>',num2str(this.check_threshold)]);
             %Überprüfung nur alle this.check_threshold iterationen

@@ -1,4 +1,6 @@
 function addMeasSystemGuiBindings(app,binding_logger)
+% FÜGT BINDINGS ZUR GUI HINZU
+
     meas_bm = Binding.BindingManager('Measurement_System',binding_logger);
             app.binding_managers.meas = meas_bm;
 

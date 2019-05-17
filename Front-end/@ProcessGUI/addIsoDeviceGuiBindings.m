@@ -1,9 +1,9 @@
 function addIsoDeviceGuiBindings(app,binding_logger)
-%% ROBOT GRIPPER TAB
+% FÜGT BINDINGS ZUR GUI HINZU
+%% ISO TAB
 iso_bm = Binding.BindingManager('IsoDevice',binding_logger);
 app.binding_managers.gripper = iso_bm;
-%             app.RoboterGreiferTab.binding_managers = [app.RoboterGreiferTab.binding_managers, robot_gripper_bm];
-%             robot_gripper_bm.timer_target_period = 0.1;
+
 
 iso_bm.addBinding(... %Winkel Zange Links
     Binding.PropertyBinding(...
@@ -70,6 +70,5 @@ iso_bm.addBinding(... %Robot RZ
     app.process.isoDevice.robot, 'rz',...
     app.rzEditField, 'Value'));
 
-%             robot_gripper_bm.timer.start()
 end
 

@@ -1,6 +1,6 @@
 classdef Logger < handle
-    %LOGGER Summary of this class goes here
-    %   Detailed explanation goes here
+    %LOGGER Framework zr kontrollierten Ausgabe von Systemnachrichten
+    % Erstellbar durch Logger.Logger()
     
     properties
         log_format = '%time - %level - %source : %message';
@@ -29,18 +29,22 @@ classdef Logger < handle
         function this = Logger()
         end
         
+        % Nachricht mit Level Debug
         function debug(this,message)
             this.log(message, 1);
         end
         
+        % Nachricht mit Level Info
         function info(this,message)
             this.log(message, 2);
         end
         
+        % Nachricht mit Level Warning
         function warning(this,message)
             this.log(message, 3);
         end
         
+        % Nachricht mit Level Error
         function error(this,message)
             this.log(message, 4);
         end

@@ -1,6 +1,6 @@
 classdef LogEntry
-    %LOGENTRY Summary of this class goes here
-    %   Detailed explanation goes here
+    %LOGENTRY Klasse für einzelne Systemnachrichten
+    % Werden durch Logger erstellt
     
     properties
         time

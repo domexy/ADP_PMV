@@ -1,4 +1,5 @@
 classdef PropertyBinding < Binding.Binding    
+    % Binding um ein Objektattribut auf ein anderes Objektattribut zu übertragen.
     properties(Access = private)
         source_object
         source_prop_name
@@ -8,6 +9,10 @@ classdef PropertyBinding < Binding.Binding
     end
     
     methods
+        % Konstruktor
+        % Akzeptiert:
+        %   ( 1 Quellobjekt + 1 Quellattributnamen ) +
+        %   n * ( 1 Zielobjekt + 1 Zielattributnamen )
         function this = PropertyBinding(source_object,source_prop_name,target_object,target_prop_name,varargin)
             this.source_object = source_object;
             this.source_prop_name = source_prop_name;
@@ -24,6 +29,7 @@ classdef PropertyBinding < Binding.Binding
             this.listener = addlistener(source_object,source_prop_name,'PostSet', @this.tryEval);
         end
         
+        % Übertragungsfunktion
         function eval(this)
             source = this.source_object.(this.source_prop_name);
             for i = 1:length(this.target_object)

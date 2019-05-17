@@ -1,4 +1,9 @@
 classdef StateLampBinding < Binding.Binding
+    % Binding um den Zustand eines StateObjects auf eine UILamp und ein
+    % UIEditfield zu übertragen
+    
+    % Definition von Konstanten
+    % Mapping von Zuständen auf Farben
     properties (Constant, Access=private)
         lamp_colors = struct(...
                         'OFFLINE', [0.65,0.65,0.65],...
@@ -17,6 +22,10 @@ classdef StateLampBinding < Binding.Binding
     end
     
     methods
+        % Konstruktor
+        % Akzeptiert:
+        %   1 StateObject +
+        %   n * ( 1 UILamp + 1 UIEditfield )
         function this = StateLampBinding(state_object,lamp,editfield,varargin)
             this.state_object = state_object;
             this.lamp = {lamp};
@@ -31,6 +40,7 @@ classdef StateLampBinding < Binding.Binding
             this.listener = addlistener(state_object,'state','PostSet', @this.tryEval);
         end
         
+        % Übertragungsfunktion
         function eval(this)
             this.state_object.updateState();
             state = this.state_object.getState();
